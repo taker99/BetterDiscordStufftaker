@@ -4,7 +4,7 @@
 * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/Plugins/ChannelTabs/ChannelTabs.plugin.js
 * @donate https://paypal.me/samfun123
 * @authorId 76052829285916672
-* @version 2.6.10
+* @version 2.6.11
 */
 /*@cc_on
 @if (@_jscript)
@@ -54,7 +54,7 @@ module.exports = (() => {
 					github_username: "samfundev",
 				}
 			],
-			version: "2.6.10",
+			version: "2.6.11",
 			description: "Allows you to have multiple tabs and bookmark channels",
 			github: "https://github.com/samfundev/BetterDiscordStuff/blob/master/Plugins/ChannelTabs/",
 			github_raw: "https://raw.githubusercontent.com/samfundev/BetterDiscordStuff/master/Plugins/ChannelTabs/ChannelTabs.plugin.js"
@@ -64,7 +64,7 @@ module.exports = (() => {
 				title: "Fixed",
 				type: "fixed",
 				items: [
-					"Fixed for Discord sweeping app changes",
+					"Fixed the selector used to render top bar",
 				]
 			}
 		]
@@ -161,6 +161,7 @@ module.exports = (() => {
 			const Tooltip = BdApi.Components.Tooltip;
 			const Slider = getModule(byStrings(`"[UIKit]Slider.handleMouseDown(): assert failed: domNode nodeType !== Element"`), { searchExports: true });
 			const NavShortcuts = getModule(byProps("NAVIGATE_BACK", "NAVIGATE_FORWARD"));
+			const TopbarSelector = getModule(byProps("app", "layers"), { name: "Topbar Selector", fatal: true });
 
 			const Close = getModule(byStrings("M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z")) ?? (() => React.createElement("div", { style: { width: "16px", "text-align": "center" } }, "⨯"));
 			const PlusAlt = getModule(byStrings("15 10 10 10 10 15 8 15 8 10 3 10 3 8 8 8 8 3 10 3 10 8 15 8")) ?? (() => React.createElement("b", null, "＋"));
@@ -3310,7 +3311,7 @@ module.exports = (() => {
 				
 				async patchAppView(promiseState)
 				{
-					const AppView = await ReactComponents.getComponent("Shakeable", ".app_de4237");
+					const AppView = await ReactComponents.getComponent("Shakeable", TopbarSelector.app);
 					if(promiseState.cancelled) return;
 					Patcher.after(AppView.component.prototype, "render", (thisObject, _, returnValue) => {
 						returnValue.props.children = [
