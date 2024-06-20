@@ -4,7 +4,7 @@
 * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/Plugins/ChannelTabs/ChannelTabs.plugin.js
 * @donate https://paypal.me/samfun123
 * @authorId 76052829285916672
-* @version 2.6.11
+* @version 2.6.12
 */
 /*@cc_on
 @if (@_jscript)
@@ -54,7 +54,7 @@ module.exports = (() => {
 					github_username: "samfundev",
 				}
 			],
-			version: "2.6.11",
+			version: "2.6.12",
 			description: "Allows you to have multiple tabs and bookmark channels",
 			github: "https://github.com/samfundev/BetterDiscordStuff/blob/master/Plugins/ChannelTabs/",
 			github_raw: "https://raw.githubusercontent.com/samfundev/BetterDiscordStuff/master/Plugins/ChannelTabs/ChannelTabs.plugin.js"
@@ -3311,7 +3311,7 @@ module.exports = (() => {
 				
 				async patchAppView(promiseState)
 				{
-					const AppView = await ReactComponents.getComponent("Shakeable", TopbarSelector.app);
+					const AppView = await ReactComponents.getComponent("Shakeable", `.${TopbarSelector.app}`);
 					if(promiseState.cancelled) return;
 					Patcher.after(AppView.component.prototype, "render", (thisObject, _, returnValue) => {
 						returnValue.props.children = [
