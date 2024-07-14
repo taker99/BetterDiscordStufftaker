@@ -4,7 +4,7 @@
 * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/Plugins/ChannelTabs/ChannelTabs.plugin.js
 * @donate https://paypal.me/samfun123
 * @authorId 76052829285916672
-* @version 2.6.12
+* @version 2.6.13
 */
 /*@cc_on
 @if (@_jscript)
@@ -54,7 +54,7 @@ module.exports = (() => {
 					github_username: "samfundev",
 				}
 			],
-			version: "2.6.12",
+			version: "2.6.13",
 			description: "Allows you to have multiple tabs and bookmark channels",
 			github: "https://github.com/samfundev/BetterDiscordStuff/blob/master/Plugins/ChannelTabs/",
 			github_raw: "https://raw.githubusercontent.com/samfundev/BetterDiscordStuff/master/Plugins/ChannelTabs/ChannelTabs.plugin.js"
@@ -65,6 +65,7 @@ module.exports = (() => {
 				type: "fixed",
 				items: [
 					"Fixed the selector used to render top bar",
+					"Fix invalid settings files not being handled properly"
 				]
 			}
 		]
@@ -97,9 +98,11 @@ module.exports = (() => {
 
 			//#region Module/Variable Definitions
 
-			const { PluginUtilities, DiscordModules, ReactComponents, ReactTools, Settings, Modals } = Api;
+			const { PluginUtilities, Utilities, DiscordModules, ReactComponents, ReactTools, Settings, Modals } = Api;
 			const { React, NavigationUtils, SelectedChannelStore, SelectedGuildStore, ChannelStore, GuildStore, UserStore, UserTypingStore, Permissions } = DiscordModules;
-			const { ContextMenu, Patcher, Webpack } = new BdApi("ChannelTabs");
+			const { ContextMenu, Patcher, Webpack, Plugins } = new BdApi("ChannelTabs");
+			const { writeFileSync, readFileSync } = require("fs");
+			const { join } = require("path");
 
 			function getModule(filter, options = {}) {
 				const foundModule = options.fail ? undefined : Webpack.getModule(filter, options);
@@ -3530,13 +3533,13 @@ module.exports = (() => {
 				
 				loadSettings()
 				{					
-					if (Object.keys(PluginUtilities.loadSettings(this.getSettingsPath())).length === 0)
+					if (Object.keys(Utilities.loadSettings(this.getSettingsPath())).length === 0)
 					{
-						this.settings = PluginUtilities.loadSettings(this.getSettingsPath(true), this.defaultVariables);
+						this.settings = Utilities.loadSettings(this.getSettingsPath(true), this.defaultVariables);
 					}
 					else 
 					{
-						this.settings = PluginUtilities.loadSettings(this.getSettingsPath(), this.defaultVariables);
+						this.settings = Utilities.loadSettings(this.getSettingsPath(), this.defaultVariables);
 					}
 					this.settings.favs = this.settings.favs.map(fav => {
 						if(fav.channelId === undefined){
@@ -3558,7 +3561,23 @@ module.exports = (() => {
 						this.settings.favs = TopBarRef.current.state.favs;
 						this.settings.favGroups = TopBarRef.current.state.favGroups;
 					}
-					PluginUtilities.saveSettings(this.getSettingsPath(), this.settings);
+					
+					function isJSON(json) {
+						try {
+							JSON.parse(json);
+							return true;
+						} catch {
+							return false;
+						}
+					};
+					
+					// Check if the settings file is corrupted and overwrite it with settings
+					const path = join(Plugins.folder, this.getSettingsPath() + ".config.json");
+					if (!isJSON(readFileSync(path))) {
+						writeFileSync(path, JSON.stringify(this.settings, null, 4));
+					} else {
+						Utilities.saveSettings(this.getSettingsPath(), this.settings);
+					}
 				}
 				
 				getSettingsPanel(){
