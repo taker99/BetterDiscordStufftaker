@@ -102,7 +102,7 @@ module.exports = (() => {
 			const { PluginUtilities, Utilities, DiscordModules, ReactComponents, ReactTools, Settings, Modals } = Api;
 			const { React, NavigationUtils, SelectedChannelStore, SelectedGuildStore, ChannelStore, GuildStore, UserStore, UserTypingStore, Permissions } = DiscordModules;
 			const { ContextMenu, Patcher, Webpack, Plugins } = new BdApi("ChannelTabs");
-			const { writeFileSync, readFileSync } = require("fs");
+			const { writeFileSync, readFileSync, existsSync } = require("fs");
 			const { join } = require("path");
 
 			function getModule(filter, options = {}) {
@@ -3581,17 +3581,15 @@ module.exports = (() => {
 						}
 					}
 					
-					const fs = require('fs');
-					const path = require('path');
-					const settingsPath = path.join(Plugins.folder, this.getSettingsPath() + ".config.json");
+					const settingsPath = join(Plugins.folder, this.getSettingsPath() + ".config.json");
 					
 					try {
-						if (!fs.existsSync(settingsPath)) {
-							fs.writeFileSync(settingsPath, JSON.stringify(this.settings, null, 4));
+						if (!existsSync(settingsPath)) {
+							writeFileSync(settingsPath, JSON.stringify(this.settings, null, 4));
 						} else {
-							const currentSettings = fs.readFileSync(settingsPath, 'utf8');
+							const currentSettings = readFileSync(settingsPath, 'utf8');
 							if (!isJSON(currentSettings)) {
-								fs.writeFileSync(settingsPath, JSON.stringify(this.settings, null, 4));
+								writeFileSync(settingsPath, JSON.stringify(this.settings, null, 4));
 							} else {
 								Utilities.saveSettings(this.getSettingsPath(), this.settings);
 							}
