@@ -4,7 +4,7 @@
 * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/Plugins/ChannelTabs/ChannelTabs.plugin.js
 * @donate https://paypal.me/samfun123
 * @authorId 76052829285916672
-* @version 2.6.14
+* @version 2.6.15
 */
 /*@cc_on
 @if (@_jscript)
@@ -54,22 +54,11 @@ module.exports = (() => {
 					github_username: "samfundev",
 				}
 			],
-			version: "2.6.14",
+			version: "2.6.15",
 			description: "Allows you to have multiple tabs and bookmark channels",
 			github: "https://github.com/samfundev/BetterDiscordStuff/blob/master/Plugins/ChannelTabs/",
 			github_raw: "https://raw.githubusercontent.com/samfundev/BetterDiscordStuff/master/Plugins/ChannelTabs/ChannelTabs.plugin.js"
-		},
-		changelog: [
-			{
-				title: "Fixed",
-				type: "fixed",
-				items: [
-					"Fixed a bug where a missing settings file would cause the plugin to crash",
-					"Added more robust error handling for icons and settings files",
-					"Thanks to nirgranth for these changes!",
-				]
-			}
-		]
+		}
 	};
 	
 	return !global.ZeresPluginLibrary ? class {
