@@ -1,0 +1,18 @@
+{
+	"name": "betterdiscordstuff",
+	"version": "1.0.0",
+	"description": "all my stuff for betterdiscord",
+	"type": "module",
+	"scripts": {
+		"format": "prettier --write ."
+	},
+	"funding": "https://github.com/sponsors/samfundev",
+	"license": "MIT",
+	"devDependencies": {
+		"prettier": "^3.4.2"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/samfundev/BetterDiscordStuff"
+	}
+}
