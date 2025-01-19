@@ -3443,7 +3443,7 @@ module.exports = (() => {
 						ContextMenu.patch("user-context", (returnValue, props) => {
 							if(!this.settings.showTabBar && !this.settings.showFavBar) return;
 							if(!returnValue) return;
-							if (!props.channel || props.channel.recipients.length !== 1 || props.channel.recipients[0] !== props.user.id) return;
+							if (!props.channel || props.channel.recipients?.length !== 1 || props.channel.recipients[0] !== props.user.id) return;
 							returnValue.props.children.push(CreateDMContextMenuChildren(this, props));
 						}),
 
