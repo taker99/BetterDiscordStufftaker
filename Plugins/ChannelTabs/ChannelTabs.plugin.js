@@ -199,12 +199,15 @@ const TopbarSelector = getModule(byKeys("app", "layers"), {
 	fatal: true,
 });
 
+const Icons = getModule((m) =>
+	Object.keys(m).some(
+		(property) =>
+			property.endsWith("Icon") &&
+			m[property].toString().includes("http://www.w3.org/2000/svg"),
+	),
+);
 const Close =
-	getModule(
-		byStrings(
-			"M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z",
-		),
-	) ??
+	Icons?.XSmallIcon ??
 	(() =>
 		React.createElement(
 			"div",
@@ -212,16 +215,11 @@ const Close =
 			"⨯",
 		));
 const PlusAlt =
-	getModule(
-		byStrings("15 10 10 10 10 15 8 15 8 10 3 10 3 8 8 8 8 3 10 3 10 8 15 8"),
-	) ?? (() => React.createElement("b", null, "＋"));
+	Icons?.PlusSmallIcon ?? (() => React.createElement("b", null, "＋"));
 const LeftCaret =
-	getModule(byStrings("18.35 4.35 16 2 6 12 16 22 18.35 19.65 10.717 12")) ??
-	(() => React.createElement("b", null, "<"));
+	Icons?.ChevronLargeLeftIcon ?? (() => React.createElement("b", null, "<"));
 const RightCaret =
-	getModule(
-		byStrings("8.47 2 6.12 4.35 13.753 12 6.12 19.65 8.47 22 18.47 12"),
-	) ?? (() => React.createElement("b", null, ">"));
+	Icons?.ChevronLargeRightIcon ?? (() => React.createElement("b", null, ">"));
 
 const DefaultUserIconGrey = "https://cdn.discordapp.com/embed/avatars/0.png";
 const DefaultUserIconGreen = "https://cdn.discordapp.com/embed/avatars/1.png";
