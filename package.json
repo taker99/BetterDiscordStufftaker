@@ -4,15 +4,28 @@
 	"description": "all my stuff for betterdiscord",
 	"type": "module",
 	"scripts": {
+		"dev": "node lib/dev.ts",
 		"format": "prettier --write ."
 	},
+	"maintainers": [
+		{
+			"name": "samfundev",
+			"discord_id": "76052829285916672"
+		}
+	],
 	"funding": "https://github.com/sponsors/samfundev",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/betterdiscord": "github:zerthox/betterdiscord-types",
+		"@types/node": "^22.10.7",
+		"esbuild": "^0.24.2",
 		"prettier": "^3.4.2"
 	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/samfundev/BetterDiscordStuff"
-	}
+	},
+	"workspaces": [
+		"Plugins/*"
+	]
 }

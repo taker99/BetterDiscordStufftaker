@@ -1,46 +1,18 @@
-/**
- * @name ChannelTabs
- * @author samfundev, l0c4lh057, CarJem Generations
- * @description Allows you to have multiple tabs and bookmark channels.
- * @version 2.6.15
- * @authorId 76052829285916672
- * @donate https://github.com/sponsors/samfundev
- * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/src/ChannelTabs/index.js
- */
-/*@cc_on
-@if (@_jscript)
+//#region Module/Variable Definitions
 
-	// Offer to self-install for clueless users that try to run this directly.
-	var shell = WScript.CreateObject("WScript.Shell");
-	var fs = new ActiveXObject("Scripting.FileSystemObject");
-	var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\BetterDiscord\plugins");
-	var pathSelf = WScript.ScriptFullName;
-	// Put the user at ease by addressing them in the first person
-	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
-	if (fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
-		shell.Popup("I'm in the correct folder already.", 0, "I'm already installed", 0x40);
-	} else if (!fs.FolderExists(pathPlugins)) {
-		shell.Popup("I can't find the BetterDiscord plugins folder.\nAre you sure it's even installed?", 0, "Can't install myself", 0x10);
-	} else if (shell.Popup("Should I copy myself to BetterDiscord's plugins folder for you?", 0, "Do you need some help?", 0x34) === 6) {
-		fs.CopyFile(pathSelf, fs.BuildPath(pathPlugins, fs.GetFileName(pathSelf)), true);
-		// Show the user where to put plugins in the future
-		shell.Exec("explorer " + pathPlugins);
-		shell.Popup("I'm installed!", 0, "Successfully installed", 0x40);
-	}
-	WScript.Quit();
+let pluginMeta;
 
-@else@*/
-// src/ChannelTabs/index.js
-var pluginMeta;
+// Promsified from https://github.com/BetterDiscord/BetterDiscord/blob/4d19634e22ca1683dd899075f95dd625bb7bf55f/renderer/src/modules/dommanager.js#L171
 function onAdded(selector) {
 	return new Promise((resolve) => {
 		if (document.body.querySelector(selector))
 			return resolve(document.body.querySelector(selector));
+
 		const observer = new MutationObserver((mutations) => {
 			for (let m = 0; m < mutations.length; m++) {
 				for (let i = 0; i < mutations[m].addedNodes.length; i++) {
 					const mutation = mutations[m].addedNodes[i];
-					if (mutation.nodeType === 3) continue;
+					if (mutation.nodeType === 3) continue; // ignore text
 					const directMatch = mutation.matches(selector) && mutation;
 					const childrenMatch = mutation.querySelector(selector);
 					if (directMatch || childrenMatch) {
@@ -50,46 +22,56 @@ function onAdded(selector) {
 				}
 			}
 		});
+
 		observer.observe(document.body, { subtree: true, childList: true });
 	});
 }
-var { ContextMenu, Patcher, Webpack, Plugins, React, DOM, ReactUtils, UI } =
+
+const { ContextMenu, Patcher, Webpack, Plugins, React, DOM, ReactUtils, UI } =
 	new BdApi("ChannelTabs");
-var { Data } = BdApi;
-var { writeFileSync, readFileSync, existsSync } = require("fs");
-var { join } = require("path");
+const { Data } = BdApi;
+
+const { writeFileSync, readFileSync, existsSync } = require("fs");
+const { join } = require("path");
+
 function getModule(filter, options = {}) {
 	const foundModule = options.fail
-		? void 0
+		? undefined
 		: Webpack.getModule(filter, options);
+
 	if (!foundModule) {
 		options.name ??= filter?.__filter;
 		missingModule(options);
 		if (options.onFail) options.onFail(options);
 	}
+
 	return foundModule;
 }
+
 function getStack() {
 	const original = Error.prepareStackTrace;
 	Error.prepareStackTrace = (_, stackTraces) => stackTraces;
+
 	const stack = new Error().stack.slice(1);
+
 	Error.prepareStackTrace = original;
 	return stack;
 }
-if (exports.dismissWarning) exports.dismissWarning();
-exports.dismissWarning = null;
-var missingFeatures = [];
+
+if (this.dismissWarning) this.dismissWarning();
+this.dismissWarning = null;
+let missingFeatures = [];
 function missingModule({ name = "<unnamed>", feature, fatal = false }) {
 	const stack = getStack();
 	const index = stack.findIndex(
 		(site) => site.getFunctionName() === "getModule",
 	);
 	const trace = stack.filter((_, i) => i > index).join("\n");
-	console.warn(`Could not find '${name}' module.
-${trace}`);
+	console.warn(`Could not find '${name}' module.\n${trace}`);
 	if (fatal) throw `Could not find '${name}' module.`;
 	if (feature != null) {
 		missingFeatures.push(feature);
+
 		if (dismissWarning) dismissWarning();
 		const content = BdApi.DOM.parseHTML(
 			`<span style="background: white; color: var(--color); padding: 1px 3px; margin-right: 3px; border-radius: 5px;">ChannelTabs</span> These features are unavailable: ${missingFeatures.join(", ")}`,
@@ -100,7 +82,8 @@ ${trace}`);
 		});
 	}
 }
-var FakeUnreadStateStore = class extends require("events").EventEmitter {
+
+class FakeUnreadStateStore extends require("events").EventEmitter {
 	getUnreadCount() {
 		return 0;
 	}
@@ -113,8 +96,10 @@ var FakeUnreadStateStore = class extends require("events").EventEmitter {
 	hasUnread() {
 		return false;
 	}
-};
-var Filters = {};
+}
+
+// Hack in some useful debug information into filters
+const Filters = {};
 for (const [key, value] of Object.entries(Webpack.Filters)) {
 	Filters[key] = function (...args) {
 		const result = value(...args);
@@ -122,28 +107,29 @@ for (const [key, value] of Object.entries(Webpack.Filters)) {
 		return result;
 	};
 }
-var { byKeys, byStrings, byStoreName } = Filters;
-var NavigationUtils = {
+
+const { byKeys, byStrings, byStoreName } = Filters;
+const NavigationUtils = {
 	transitionToGuild: getModule(byKeys("transitionToGuildSync"))
 		?.transitionToGuildSync,
 	transitionTo: getModule(byStrings(`"transitionTo - Transitioning to "`), {
 		searchExports: true,
 	}),
 };
-var Permissions = getModule(byKeys("computePermissions"));
-var SelectedChannelStore = getModule(byStoreName("SelectedChannelStore"));
-var SelectedGuildStore = getModule(byStoreName("SelectedGuildStore"));
-var ChannelStore = getModule(byStoreName("ChannelStore"));
-var UserStore = getModule(byStoreName("UserStore"));
-var UserTypingStore = getModule(byStoreName("TypingStore"));
-var RelationshipStore = getModule(byStoreName("RelationshipStore"));
-var GuildStore = getModule(byStoreName("GuildStore"));
-var DiscordConstants = {
+const Permissions = getModule(byKeys("computePermissions"));
+const SelectedChannelStore = getModule(byStoreName("SelectedChannelStore"));
+const SelectedGuildStore = getModule(byStoreName("SelectedGuildStore"));
+const ChannelStore = getModule(byStoreName("ChannelStore"));
+const UserStore = getModule(byStoreName("UserStore"));
+const UserTypingStore = getModule(byStoreName("TypingStore"));
+const RelationshipStore = getModule(byStoreName("RelationshipStore"));
+const GuildStore = getModule(byStoreName("GuildStore"));
+const DiscordConstants = {
 	ChannelTypes: getModule(byKeys("GUILD_TEXT"), {
 		searchExports: true,
 	}),
 };
-var Textbox =
+const Textbox =
 	getModule((m) => m.defaultProps && m.defaultProps.type == "text", {
 		searchExports: true,
 	}) ??
@@ -152,71 +138,86 @@ var Textbox =
 			...props,
 			onChange: (e) => props?.onChange(e.target.value),
 		}));
-var UnreadStateStore =
+const UnreadStateStore =
 	getModule((m) => m.isEstimated, {
 		feature: "Unread/Mention Indicators",
 	}) ?? new FakeUnreadStateStore();
-var Flux = getModule(byKeys("connectStores"), {
+const Flux = getModule(byKeys("connectStores"), {
 	name: "Flux",
 	fatal: true,
 });
-var MutedStore = getModule(byKeys("isMuted", "isChannelMuted"));
-var PermissionUtils = getModule(byKeys("can", "canManageUser"));
-var UserStatusStore = getModule(byStoreName("PresenceStore"));
-var Spinner = getModule((m) => m.Type?.SPINNING_CIRCLE, {
+const MutedStore = getModule(byKeys("isMuted", "isChannelMuted"));
+const PermissionUtils = getModule(byKeys("can", "canManageUser"));
+const UserStatusStore = getModule(byStoreName("PresenceStore"));
+const Spinner = getModule((m) => m.Type?.SPINNING_CIRCLE, {
 	searchExports: true,
 	feature: "Typing Indicators",
 });
-var Tooltip = BdApi.Components.Tooltip;
-var Slider = getModule(
+const Tooltip = BdApi.Components.Tooltip;
+const Slider = getModule(
 	byStrings(
 		`"[UIKit]Slider.handleMouseDown(): assert failed: domNode nodeType !== Element"`,
 	),
 	{ searchExports: true },
 );
-var NavShortcuts = getModule(byKeys("NAVIGATE_BACK", "NAVIGATE_FORWARD"));
-var TopbarSelector = getModule(byKeys("app", "layers"), {
+const NavShortcuts = getModule(byKeys("NAVIGATE_BACK", "NAVIGATE_FORWARD"));
+const TopbarSelector = getModule(byKeys("app", "layers"), {
 	name: "Topbar Selector",
 	fatal: true,
 });
-var Icons = getModule((m) =>
+
+const Icons = getModule((m) =>
 	Object.keys(m).some(
 		(property) =>
 			property.endsWith("Icon") &&
 			m[property].toString().includes("http://www.w3.org/2000/svg"),
 	),
 );
-var Close =
+const Close =
 	Icons?.XSmallIcon ??
 	(() =>
 		React.createElement(
 			"div",
 			{ style: { width: "16px", "text-align": "center" } },
-			"\u2A2F",
+			"⨯",
 		));
-var PlusAlt =
-	Icons?.PlusSmallIcon ?? (() => React.createElement("b", null, "\uFF0B"));
-var LeftCaret =
+const PlusAlt =
+	Icons?.PlusSmallIcon ?? (() => React.createElement("b", null, "＋"));
+const LeftCaret =
 	Icons?.ChevronLargeLeftIcon ?? (() => React.createElement("b", null, "<"));
-var RightCaret =
+const RightCaret =
 	Icons?.ChevronLargeRightIcon ?? (() => React.createElement("b", null, ">"));
-var DefaultUserIconGrey = "https://cdn.discordapp.com/embed/avatars/0.png";
-var DefaultUserIconGreen = "https://cdn.discordapp.com/embed/avatars/1.png";
-var DefaultUserIconBlue = "https://cdn.discordapp.com/embed/avatars/2.png";
-var SettingsMenuIcon = `<svg class="channelTabs-settingsIcon" aria-hidden="false" viewBox="0 0 80 80">
+
+const DefaultUserIconGrey = "https://cdn.discordapp.com/embed/avatars/0.png";
+const DefaultUserIconGreen = "https://cdn.discordapp.com/embed/avatars/1.png";
+const DefaultUserIconBlue = "https://cdn.discordapp.com/embed/avatars/2.png";
+const DefaultUserIconRed = "https://cdn.discordapp.com/embed/avatars/3.png";
+const DefaultUserIconYellow = "https://cdn.discordapp.com/embed/avatars/4.png";
+
+const SettingsMenuIcon = `<svg class="channelTabs-settingsIcon" aria-hidden="false" viewBox="0 0 80 80">
 <rect fill="var(--interactive-normal)" x="20" y="15" width="50" height="10"></rect>
 <rect fill="var(--interactive-normal)" x="20" y="35" width="50" height="10"></rect>
 <rect fill="var(--interactive-normal)" x="20" y="55" width="50" height="10"></rect>
 </svg>`;
+
 var switching = false;
 var patches = [];
+
 var currentTabDragIndex = -1;
 var currentTabDragDestinationIndex = -1;
+
 var currentFavDragIndex = -1;
 var currentFavDragDestinationIndex = -1;
+
 var currentGroupDragIndex = -1;
 var currentGroupDragDestinationIndex = -1;
+
 var currentGroupOpened = -1;
+
+//#endregion
+
+//#region Context Menu Constructors
+
 function CreateGuildContextMenuChildren(instance, props, channel) {
 	return ContextMenu.buildMenuChildren([
 		{
@@ -259,7 +260,7 @@ function CreateGuildContextMenuChildren(instance, props, channel) {
 										props.guild.name,
 										props.guild.getIconURL() || "",
 										`/channels/${props.guild.id}`,
-										void 0,
+										undefined,
 										props.guild.id,
 									),
 							},
@@ -270,6 +271,7 @@ function CreateGuildContextMenuChildren(instance, props, channel) {
 		},
 	]);
 }
+
 function CreateTextChannelContextMenuChildren(instance, props) {
 	return ContextMenu.buildMenuChildren([
 		{
@@ -311,6 +313,7 @@ function CreateTextChannelContextMenuChildren(instance, props) {
 		},
 	]);
 }
+
 function CreateThreadChannelContextMenuChildren(instance, props) {
 	return ContextMenu.buildMenuChildren([
 		{
@@ -356,6 +359,7 @@ function CreateThreadChannelContextMenuChildren(instance, props) {
 		},
 	]);
 }
+
 function CreateDMContextMenuChildren(instance, props) {
 	return ContextMenu.buildMenuChildren([
 		{
@@ -401,6 +405,7 @@ function CreateDMContextMenuChildren(instance, props) {
 		},
 	]);
 }
+
 function CreateGroupContextMenuChildren(instance, props) {
 	return ContextMenu.buildMenuChildren([
 		{
@@ -425,7 +430,7 @@ function CreateGroupContextMenuChildren(instance, props) {
 														RelationshipStore.getNickname(u.id) || u.globalName,
 												)
 												.join(", "),
-										"",
+										"" /*TODO*/,
 									),
 							},
 						],
@@ -442,7 +447,7 @@ function CreateGroupContextMenuChildren(instance, props) {
 														RelationshipStore.getNickname(u.id) || u.globalName,
 												)
 												.join(", "),
-										"",
+										"" /*TODO*/,
 										`/channels/@me/${props.channel.id}`,
 										props.channel.id,
 									),
@@ -454,6 +459,7 @@ function CreateGroupContextMenuChildren(instance, props) {
 		},
 	]);
 }
+
 function CreateTabContextMenu(props, e) {
 	ContextMenu.open(
 		e,
@@ -561,6 +567,7 @@ function CreateTabContextMenu(props, e) {
 		},
 	);
 }
+
 function CreateFavContextMenu(props, e) {
 	ContextMenu.open(
 		e,
@@ -656,6 +663,7 @@ function CreateFavContextMenu(props, e) {
 		},
 	);
 }
+
 function CreateFavGroupContextMenu(props, e) {
 	ContextMenu.open(
 		e,
@@ -731,6 +739,7 @@ function CreateFavGroupContextMenu(props, e) {
 		},
 	);
 }
+
 function CreateFavBarContextMenu(props, e) {
 	ContextMenu.open(
 		e,
@@ -769,6 +778,7 @@ function CreateFavBarContextMenu(props, e) {
 		},
 	);
 }
+
 function CreateSettingsContextMenu(instance, e) {
 	ContextMenu.open(
 		e,
@@ -810,10 +820,9 @@ function CreateSettingsContextMenu(instance, e) {
 											"white-space": "pre-wrap",
 										},
 									},
-									`Ctrl + W - Close Current Tab
-Ctrl + PgUp - Navigate to Left Tab
-Ctrl + PgDn - Navigate to Right Tab
-`,
+									`Ctrl + W - Close Current Tab\n` +
+										`Ctrl + PgUp - Navigate to Left Tab\n` +
+										`Ctrl + PgDn - Navigate to Right Tab\n`,
 								);
 							},
 						},
@@ -1464,7 +1473,12 @@ Ctrl + PgDn - Navigate to Right Tab
 		},
 	);
 }
-var closeAllDropdowns = () => {
+
+//#endregion
+
+//#region Global Common Functions
+
+const closeAllDropdowns = () => {
 	var dropdowns = document.getElementsByClassName(
 		"channelTabs-favGroup-content",
 	);
@@ -1477,12 +1491,14 @@ var closeAllDropdowns = () => {
 	}
 	currentGroupOpened = -1;
 };
-var mergeLists = (...items) => {
+
+const mergeLists = (...items) => {
 	return items
-		.filter((item) => item.include === void 0 || item.include)
+		.filter((item) => item.include === undefined || item.include)
 		.flatMap((item) => item.values);
 };
-var getGuildChannels = (...guildIds) => {
+
+const getGuildChannels = (...guildIds) => {
 	const channels = ChannelStore.getGuildChannels
 		? Object.values(ChannelStore.getGuildChannels())
 		: ChannelStore.getMutableGuildChannels
@@ -1495,7 +1511,8 @@ var getGuildChannels = (...guildIds) => {
 			c.type !== DiscordConstants.ChannelTypes.GUILD_CATEGORY,
 	);
 };
-var updateFavEntry = (fav) => {
+
+const updateFavEntry = (fav) => {
 	if (fav.guildId) {
 		const channelIds = getGuildChannels(fav.guildId)
 			.filter(
@@ -1546,7 +1563,8 @@ var updateFavEntry = (fav) => {
 		};
 	}
 };
-var getCurrentUserStatus = (pathname = location.pathname) => {
+
+const getCurrentUserStatus = (pathname = location.pathname) => {
 	const cId = (pathname.match(/^\/channels\/(\d+|@me|@favorites)\/(\d+)/) ||
 		[])[2];
 	if (cId) {
@@ -1563,7 +1581,8 @@ var getCurrentUserStatus = (pathname = location.pathname) => {
 	}
 	return "none";
 };
-var getChannelTypingTooltipText = (userIds) => {
+
+const getChannelTypingTooltipText = (userIds) => {
 	if (userIds) {
 		const usernames = userIds
 			.map((userId) => UserStore.getUser(userId))
@@ -1586,7 +1605,8 @@ var getChannelTypingTooltipText = (userIds) => {
 	}
 	return "Someone is Typing...";
 };
-var getChannelTypingUsers = (channel_id) => {
+
+const getChannelTypingUsers = (channel_id) => {
 	const channel = ChannelStore.getChannel(channel_id);
 	const selfId = UserStore.getCurrentUser()?.id;
 	if (channel) {
@@ -1598,7 +1618,8 @@ var getChannelTypingUsers = (channel_id) => {
 	}
 	return null;
 };
-var isChannelTyping = (channel_id) => {
+
+const isChannelTyping = (channel_id) => {
 	const channel = ChannelStore.getChannel(channel_id);
 	const selfId = UserStore.getCurrentUser()?.id;
 	if (channel) {
@@ -1610,13 +1631,15 @@ var isChannelTyping = (channel_id) => {
 	}
 	return false;
 };
-var isChannelDM = (channel_id) => {
+
+const isChannelDM = (channel_id) => {
 	return (() => {
 		const c = ChannelStore.getChannel(channel_id);
 		return c && (c.isDM() || c.isGroupDM());
 	})();
 };
-var getCurrentName = (pathname = location.pathname) => {
+
+const getCurrentName = (pathname = location.pathname) => {
 	const cId = (pathname.match(/^\/channels\/(\d+|@me|@favorites)\/(\d+)/) ||
 		[])[2];
 	if (cId) {
@@ -1638,14 +1661,17 @@ var getCurrentName = (pathname = location.pathname) => {
 		else return pathname;
 	}
 };
-var getCurrentIconUrl = (pathname = location.pathname) => {
+
+const getCurrentIconUrl = (pathname = location.pathname) => {
 	try {
 		const cId = (pathname.match(/^\/channels\/(\d+|@me|@favorites)\/(\d+)/) ||
 			[])[2];
 		if (!cId) return DefaultUserIconGrey;
+
 		if (!ChannelStore || !ChannelStore.getChannel) return DefaultUserIconGrey;
 		const channel = ChannelStore.getChannel(cId);
 		if (!channel) return DefaultUserIconGrey;
+
 		if (channel.guild_id) {
 			if (!GuildStore || !GuildStore.getGuild) return DefaultUserIconGrey;
 			const guild = GuildStore.getGuild(channel.guild_id);
@@ -1667,7 +1693,11 @@ var getCurrentIconUrl = (pathname = location.pathname) => {
 	}
 	return DefaultUserIconGrey;
 };
-var GetTabStyles = (viewMode, item) => {
+//#endregion
+
+//#region Tab Definitions
+
+const GetTabStyles = (viewMode, item) => {
 	if (item === "unreadBadge") {
 		if (viewMode === "classic") return " channelTabs-classicBadgeAlignment";
 		else if (viewMode === "alt") return " channelTabs-badgeAlignLeft";
@@ -1680,12 +1710,14 @@ var GetTabStyles = (viewMode, item) => {
 	}
 	return "";
 };
-var TabIcon = (props) =>
+
+const TabIcon = (props) =>
 	React.createElement("img", {
 		className: "channelTabs-tabIcon",
 		src: !props.iconUrl ? DefaultUserIconGrey : props.iconUrl,
 	});
-var TabStatus = (props) =>
+
+const TabStatus = (props) =>
 	React.createElement("rect", {
 		width: 6,
 		height: 6,
@@ -1699,7 +1731,8 @@ var TabStatus = (props) =>
 			(props.currentStatus == "offline" ? " channelTabs-offlineIcon" : "") +
 			(props.currentStatus == "none" ? " channelTabs-noneIcon" : ""),
 	});
-var TabName = (props) =>
+
+const TabName = (props) =>
 	React.createElement(
 		"span",
 		{
@@ -1707,7 +1740,8 @@ var TabName = (props) =>
 		},
 		props.name,
 	);
-var TabClose = (props) =>
+
+const TabClose = (props) =>
 	props.tabCount < 2
 		? null
 		: React.createElement(
@@ -1721,7 +1755,8 @@ var TabClose = (props) =>
 				},
 				React.createElement(Close, {}),
 			);
-var TabUnreadBadge = (props) =>
+
+const TabUnreadBadge = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -1732,7 +1767,8 @@ var TabUnreadBadge = (props) =>
 		},
 		props.unreadCount + (props.unreadEstimated ? "+" : ""),
 	);
-var TabMentionBadge = (props) =>
+
+const TabMentionBadge = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -1743,7 +1779,8 @@ var TabMentionBadge = (props) =>
 		},
 		props.mentionCount,
 	);
-var TabTypingBadge = ({ viewMode, isTyping, userIds }) => {
+
+const TabTypingBadge = ({ viewMode, isTyping, userIds }) => {
 	if (isTyping === false || !Spinner) return null;
 	const text = getChannelTypingTooltipText(userIds);
 	return React.createElement(
@@ -1771,7 +1808,8 @@ var TabTypingBadge = ({ viewMode, isTyping, userIds }) => {
 		),
 	);
 };
-var CozyTab = (props) => {
+
+const CozyTab = (props) => {
 	return React.createElement(
 		"div",
 		{},
@@ -1869,7 +1907,8 @@ var CozyTab = (props) => {
 		),
 	);
 };
-var CompactTab = (props) => {
+
+const CompactTab = (props) => {
 	return React.createElement(
 		"div",
 		{},
@@ -1958,7 +1997,8 @@ var CompactTab = (props) => {
 				),
 	);
 };
-var Tab = (props) =>
+
+const Tab = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -1987,6 +2027,7 @@ var Tab = (props) =>
 					return;
 				currentTabDragDestinationIndex = props.tabIndex;
 			},
+
 			onMouseDown: (e) => {
 				let mouseMove = (e2) => {
 					if (
@@ -2027,21 +2068,29 @@ var Tab = (props) =>
 				document.addEventListener("mouseup", mouseUp);
 			},
 		},
+
 		props.compactStyle ? CompactTab(props) : CozyTab(props),
 		React.createElement(TabClose, {
 			tabCount: props.tabCount,
 			closeTab: () => props.closeTab(props.tabIndex),
 		}),
 	);
-var FavMoveToGroupList = (props) => {
+
+//#endregion
+
+//#region Fav Definitions
+
+const FavMoveToGroupList = (props) => {
 	var groups = props.favGroups.map((group, index) => {
 		var entry = {
 			label: group.name,
 			id: "entry" + index,
 			action: () => props.moveToFavGroup(props.favIndex, group.groupId),
 		};
+
 		return entry;
 	});
+
 	if (groups.length === 0) {
 		return [
 			{
@@ -2050,14 +2099,17 @@ var FavMoveToGroupList = (props) => {
 			},
 		];
 	}
+
 	return groups;
 };
-var FavIcon = (props) =>
+
+const FavIcon = (props) =>
 	React.createElement("img", {
 		className: "channelTabs-favIcon",
 		src: !props.iconUrl ? DefaultUserIconGrey : props.iconUrl,
 	});
-var FavStatus = (props) =>
+
+const FavStatus = (props) =>
 	React.createElement("rect", {
 		width: 6,
 		height: 6,
@@ -2071,7 +2123,8 @@ var FavStatus = (props) =>
 			(props.currentStatus == "offline" ? " channelTabs-offlineIcon" : "") +
 			(props.currentStatus == "none" ? " channelTabs-noneIcon" : ""),
 	});
-var FavName = (props) =>
+
+const FavName = (props) =>
 	React.createElement(
 		"span",
 		{
@@ -2079,7 +2132,8 @@ var FavName = (props) =>
 		},
 		props.name,
 	);
-var FavUnreadBadge = (props) =>
+
+const FavUnreadBadge = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -2089,7 +2143,8 @@ var FavUnreadBadge = (props) =>
 		},
 		props.unreadCount + (props.unreadEstimated ? "+" : ""),
 	);
-var FavMentionBadge = (props) =>
+
+const FavMentionBadge = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -2099,7 +2154,8 @@ var FavMentionBadge = (props) =>
 		},
 		props.mentionCount,
 	);
-var FavTypingBadge = ({ isTyping, userIds }) => {
+
+const FavTypingBadge = ({ isTyping, userIds }) => {
 	if (!Spinner) return null;
 	const text = getChannelTypingTooltipText(userIds);
 	return React.createElement(
@@ -2124,7 +2180,8 @@ var FavTypingBadge = ({ isTyping, userIds }) => {
 			),
 	);
 };
-var Fav = (props) =>
+
+const Fav = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -2202,6 +2259,7 @@ var Fav = (props) =>
 				document.addEventListener("mouseup", mouseUp);
 			},
 		},
+
 		React.createElement(
 			"svg",
 			{
@@ -2233,6 +2291,7 @@ var Fav = (props) =>
 						currentStatus: props.currentStatus,
 					}),
 		),
+
 		React.createElement(FavName, { name: props.name }),
 		!(props.showFavUnreadBadges && (props.channelId || props.guildId))
 			? null
@@ -2249,6 +2308,7 @@ var Fav = (props) =>
 									hasUnread: props.hasUnread,
 								}),
 				),
+
 		!(props.showFavMentionBadges && (props.channelId || props.guildId))
 			? null
 			: React.createElement(
@@ -2260,6 +2320,7 @@ var Fav = (props) =>
 								mentionCount: props.mentionCount,
 							}),
 				),
+
 		!(props.showFavTypingBadge && (props.channelId || props.guildId))
 			? null
 			: React.createElement(
@@ -2271,7 +2332,12 @@ var Fav = (props) =>
 					}),
 				),
 	);
-var NewTab = (props) =>
+
+//#endregion
+
+//#region Misc. Definitions
+
+const NewTab = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -2280,7 +2346,12 @@ var NewTab = (props) =>
 		},
 		React.createElement(PlusAlt, {}),
 	);
-var NoFavItemsPlaceholder = (props) =>
+
+//#endregion
+
+//#region FavItems/FavFolders Definitions
+
+const NoFavItemsPlaceholder = (props) =>
 	React.createElement(
 		"span",
 		{
@@ -2288,8 +2359,10 @@ var NoFavItemsPlaceholder = (props) =>
 		},
 		"You don't have any favs yet. Right click a tab to mark it as favourite. You can disable this bar in the settings.",
 	);
-var FavItems = (props) => {
+
+const FavItems = (props) => {
 	var isDefault = props.group === null;
+
 	return props.favs
 		.filter((item) => item)
 		.map((fav, favIndex) => {
@@ -2339,7 +2412,8 @@ var FavItems = (props) => {
 				: null;
 		});
 };
-var FavFolder = (props) =>
+
+const FavFolder = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -2447,7 +2521,8 @@ var FavFolder = (props) =>
 			}),
 		),
 	);
-var FavFolders = (props) => {
+
+const FavFolders = (props) => {
 	return props.favGroups.map((favGroup, index) => {
 		return React.createElement(
 			Flux.connectStores(
@@ -2458,6 +2533,7 @@ var FavFolders = (props) => {
 					var hasUnread = false;
 					var mentionCount = 0;
 					var isTyping = false;
+
 					props.favs
 						.filter((item) => item)
 						.forEach((fav, favIndex) => {
@@ -2486,7 +2562,7 @@ var FavFolders = (props) => {
 				return React.createElement(FavFolder, {
 					groupIndex: index,
 					groupCount: props.favGroups.length,
-					favGroup,
+					favGroup: favGroup,
 					unreadCountGroup: result.unreadCount,
 					unreadEstimatedGroup: result.unreadEstimated,
 					mentionCountGroup: result.mentionCount,
@@ -2502,6 +2578,11 @@ var FavFolders = (props) => {
 		);
 	});
 };
+
+//#endregion
+
+//#region FavBar/TopBar/TabBar Definitions
+
 function nextTab() {
 	if (TopBarRef.current)
 		TopBarRef.current.switchToTab(
@@ -2509,6 +2590,7 @@ function nextTab() {
 				TopBarRef.current.state.tabs.length,
 		);
 }
+
 function previousTab() {
 	if (TopBarRef.current)
 		TopBarRef.current.switchToTab(
@@ -2518,11 +2600,13 @@ function previousTab() {
 				TopBarRef.current.state.tabs.length,
 		);
 }
+
 function closeCurrentTab() {
 	if (TopBarRef.current)
 		TopBarRef.current.closeTab(TopBarRef.current.state.selectedTabIndex);
 }
-var TabBar = (props) =>
+
+const TabBar = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -2638,7 +2722,8 @@ var TabBar = (props) =>
 			openNewTab: props.openNewTab,
 		}),
 	);
-var FavBar = (props) =>
+
+const FavBar = (props) =>
 	React.createElement(
 		"div",
 		{
@@ -2655,8 +2740,10 @@ var FavBar = (props) =>
 			? React.createElement(FavItems, { group: null, ...props })
 			: React.createElement(NoFavItemsPlaceholder, {}),
 	);
-var TopBar = class TopBar2 extends React.Component {
+
+const TopBar = class TopBar extends React.Component {
 	//#region Constructor
+
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -2715,11 +2802,15 @@ var TopBar = class TopBar2 extends React.Component {
 		this.openFavGroupInNewTab = this.openFavGroupInNewTab.bind(this);
 		this.hideFavBar = this.hideFavBar.bind(this);
 	}
+
 	componentDidMount() {
 		this.refreshGuildIcons();
 	}
+
 	//#endregion
+
 	//#region Tab Functions
+
 	minimizeTab(tabIndex) {
 		this.setState(
 			{
@@ -2728,12 +2819,13 @@ var TopBar = class TopBar2 extends React.Component {
 						return Object.assign({}, tab, {
 							minimized: !tab.minimized,
 						});
-					else return Object.assign({}, tab);
+					else return Object.assign({}, tab); // or return tab;
 				}),
 			},
 			this.props.plugin.saveSettings,
 		);
 	}
+
 	switchToTab(tabIndex) {
 		this.setState(
 			{
@@ -2752,6 +2844,7 @@ var TopBar = class TopBar2 extends React.Component {
 		NavigationUtils.transitionTo(this.state.tabs[tabIndex].url);
 		switching = false;
 	}
+
 	closeTab(tabIndex, mode) {
 		if (this.state.tabs.length === 1) return;
 		if (mode === "single" || mode == null) {
@@ -2812,6 +2905,7 @@ var TopBar = class TopBar2 extends React.Component {
 			);
 		}
 	}
+
 	moveTab(fromIndex, toIndex) {
 		if (fromIndex === toIndex) return;
 		const tabs = this.state.tabs.filter((tab, index) => index !== fromIndex);
@@ -2824,8 +2918,11 @@ var TopBar = class TopBar2 extends React.Component {
 			this.props.plugin.saveSettings,
 		);
 	}
+
 	//#endregion
+
 	//#region Fav Functions
+
 	hideFavBar() {
 		this.setState(
 			{
@@ -2837,6 +2934,7 @@ var TopBar = class TopBar2 extends React.Component {
 			},
 		);
 	}
+
 	renameFav(currentName, favIndex) {
 		let name = currentName;
 		BdApi.showConfirmationModal(
@@ -2860,6 +2958,7 @@ var TopBar = class TopBar2 extends React.Component {
 			},
 		);
 	}
+
 	minimizeFav(favIndex) {
 		this.setState(
 			{
@@ -2868,12 +2967,13 @@ var TopBar = class TopBar2 extends React.Component {
 						return Object.assign({}, fav, {
 							minimized: !fav.minimized,
 						});
-					else return Object.assign({}, fav);
+					else return Object.assign({}, fav); // or return tab;
 				}),
 			},
 			this.props.plugin.saveSettings,
 		);
 	}
+
 	deleteFav(favIndex) {
 		this.setState(
 			{
@@ -2882,6 +2982,7 @@ var TopBar = class TopBar2 extends React.Component {
 			this.props.plugin.saveSettings,
 		);
 	}
+
 	/**
 	 * The guildId parameter is only passed when the guild is saved and not the channel alone.
 	 * This indicates that the currently selected channel needs to get selected instead of the
@@ -2899,6 +3000,7 @@ var TopBar = class TopBar2 extends React.Component {
 			this.props.plugin.saveSettings,
 		);
 	}
+
 	refreshGuildIcons() {
 		this.setState(
 			{
@@ -2912,18 +3014,23 @@ var TopBar = class TopBar2 extends React.Component {
 			this.props.plugin.saveSettings,
 		);
 	}
+
 	moveFav(fromIndex, toIndex) {
 		if (fromIndex === toIndex) return;
 		const favs = this.state.favs.filter((fav, index) => index !== fromIndex);
 		favs.splice(toIndex, 0, this.state.favs[fromIndex]);
 		this.setState({ favs }, this.props.plugin.saveSettings);
 	}
+
 	//#endregion
+
 	//#region Fav Group Functions
+
 	createFavGroupId() {
 		var generatedId = this.state.favGroups.length;
 		var isUnique = false;
 		var duplicateFound = false;
+
 		while (!isUnique) {
 			for (var i = 0; i < this.state.favGroups.length; i++) {
 				var group = this.state.favGroups[i];
@@ -2937,6 +3044,7 @@ var TopBar = class TopBar2 extends React.Component {
 		}
 		return generatedId;
 	}
+
 	addFavGroup() {
 		let name = "New Group";
 		BdApi.showConfirmationModal(
@@ -2951,7 +3059,7 @@ var TopBar = class TopBar2 extends React.Component {
 						{
 							favGroups: [
 								...this.state.favGroups,
-								{ name, groupId: this.createFavGroupId() },
+								{ name: name, groupId: this.createFavGroupId() },
 							],
 						},
 						this.props.plugin.saveSettings,
@@ -2960,6 +3068,7 @@ var TopBar = class TopBar2 extends React.Component {
 			},
 		);
 	}
+
 	renameFavGroup(currentName, groupId) {
 		let name = currentName;
 		BdApi.showConfirmationModal(
@@ -2984,6 +3093,7 @@ var TopBar = class TopBar2 extends React.Component {
 			},
 		);
 	}
+
 	removeFavGroup(groupId) {
 		this.setState(
 			{
@@ -2993,6 +3103,7 @@ var TopBar = class TopBar2 extends React.Component {
 			},
 			this.props.plugin.saveSettings,
 		);
+
 		this.setState(
 			{
 				favs: this.state.favs.map((fav, index) => {
@@ -3004,12 +3115,13 @@ var TopBar = class TopBar2 extends React.Component {
 			this.props.plugin.saveSettings,
 		);
 	}
+
 	moveToFavGroup(favIndex, groupId) {
 		this.setState(
 			{
 				favs: this.state.favs.map((fav, index) => {
 					if (index === favIndex) {
-						return Object.assign({}, fav, { groupId });
+						return Object.assign({}, fav, { groupId: groupId });
 					} else {
 						return Object.assign({}, fav);
 					}
@@ -3018,18 +3130,23 @@ var TopBar = class TopBar2 extends React.Component {
 			this.props.plugin.saveSettings,
 		);
 	}
+
 	moveFavGroup(fromIndex, toIndex) {
 		if (fromIndex === toIndex) return;
 		const favGroups = this.state.favGroups.filter(
 			(group, index) => index !== fromIndex,
 		);
 		favGroups.splice(toIndex, 0, this.state.favGroups[fromIndex]);
-		this.setState({ favGroups }, this.props.plugin.saveSettings);
+		this.setState({ favGroups: favGroups }, this.props.plugin.saveSettings);
 	}
+
 	//#endregion
+
 	//#region New Tab Functions
+
 	saveChannel(guildId, channelId, name, iconUrl) {
 		if (this.state.alwaysFocusNewTabs) {
+			//Open and Focus New Tab
 			const newTabIndex = this.state.tabs.length;
 			this.setState(
 				{
@@ -3054,6 +3171,7 @@ var TopBar = class TopBar2 extends React.Component {
 				},
 			);
 		} else {
+			//Open New Tab
 			this.setState(
 				{
 					tabs: [
@@ -3072,6 +3190,7 @@ var TopBar = class TopBar2 extends React.Component {
 			);
 		}
 	}
+
 	openNewTab() {
 		const newTabIndex = this.state.tabs.length;
 		this.setState(
@@ -3084,7 +3203,7 @@ var TopBar = class TopBar2 extends React.Component {
 						url: "/channels/@me",
 						name: "Friends",
 						selected: true,
-						channelId: void 0,
+						channelId: undefined,
 					},
 				],
 				selectedTabIndex: newTabIndex,
@@ -3095,7 +3214,9 @@ var TopBar = class TopBar2 extends React.Component {
 			},
 		);
 	}
+
 	openTabInNewTab(tab) {
+		//Used to Duplicate Tabs
 		this.setState(
 			{
 				tabs: [...this.state.tabs, Object.assign({}, tab, { selected: false })],
@@ -3103,8 +3224,10 @@ var TopBar = class TopBar2 extends React.Component {
 			this.props.plugin.saveSettings,
 		);
 	}
+
 	openFavInNewTab(fav, isGroup) {
 		if (this.state.alwaysFocusNewTabs && !isGroup) {
+			//Opens and Focuses New Tab
 			const newTabIndex = this.state.tabs.length;
 			const url = fav.url + (fav.guildId ? `/${fav.guildId}` : "");
 			this.setState(
@@ -3130,6 +3253,7 @@ var TopBar = class TopBar2 extends React.Component {
 				},
 			);
 		} else {
+			//Opens New Tab
 			const url = fav.url + (fav.guildId ? `/${fav.guildId}` : "");
 			this.setState(
 				{
@@ -3150,6 +3274,7 @@ var TopBar = class TopBar2 extends React.Component {
 			);
 		}
 	}
+
 	openFavGroupInNewTab(groupId) {
 		this.state.favs
 			.filter((item) => item)
@@ -3160,8 +3285,11 @@ var TopBar = class TopBar2 extends React.Component {
 				}
 			});
 	}
+
 	//#endregion
+
 	//#region Other Functions
+
 	render() {
 		return React.createElement(
 			"div",
@@ -3232,19 +3360,30 @@ var TopBar = class TopBar2 extends React.Component {
 					}),
 		);
 	}
+
 	//#endregion
 };
-var TopBarRef = React.createRef();
+
+const TopBarRef = React.createRef();
+
+//#endregion
+
+//#region Plugin Decleration
+
 module.exports = class ChannelTabs {
 	//#region Start/Stop Functions
+
 	constructor(meta) {
 		this.meta = meta;
 		pluginMeta = meta;
 	}
+
 	start(isRetry = false) {
+		//console.warn("CT Start");
 		if (isRetry && !BdApi.Plugins.isEnabled(config.info.name)) return;
 		if (!UserStore.getCurrentUser())
-			return setTimeout(() => this.start(true), 1e3);
+			return setTimeout(() => this.start(true), 1000);
+		//console.warn(UserStore.getCurrentUser());
 		patches = [];
 		this.loadSettings();
 		this.applyStyle();
@@ -3264,6 +3403,7 @@ module.exports = class ChannelTabs {
 		document.addEventListener("keydown", this.keybindHandler);
 		window.onclick = (event) => this.clickHandler(event);
 	}
+
 	stop() {
 		this.removeStyle();
 		document.removeEventListener("keydown", this.keybindHandler);
@@ -3272,8 +3412,11 @@ module.exports = class ChannelTabs {
 		this.promises.cancel();
 		patches.forEach((patch) => patch());
 	}
+
 	//#endregion
+
 	//#region Styles
+
 	applyStyle() {
 		const CompactVariables = `
 	:root {	
@@ -3283,6 +3426,7 @@ module.exports = class ChannelTabs {
 		--channelTabs-openTabSize: 18px;
 	}
 `;
+
 		const CozyVariables = `
 	:root {	
 		--channelTabs-tabHeight: 32px;
@@ -3291,12 +3435,14 @@ module.exports = class ChannelTabs {
 		--channelTabs-openTabSize: 24px;
 	}
 `;
+
 		const ConstantVariables = `
 	:root {	
 		--channelTabs-tabWidth: 220px;
 		--channelTabs-tabWidthMin: ${this.settings.tabWidthMin}px;
 	}
 `;
+
 		const PrivacyStyle = `
 	#app-mount .channelTabs-favGroupBtn {
 		color: transparent !important;
@@ -3318,6 +3464,7 @@ module.exports = class ChannelTabs {
 		opacity: 0.5;
 	}
 `;
+
 		const RadialStatusStyle = `
 	.channelTabs-tabIconWrapper,
 	.channelTabs-favIconWrapper {
@@ -3360,6 +3507,7 @@ module.exports = class ChannelTabs {
 		stroke: hsl(214, calc(var(--saturation-factor, 1) * 9.9%), 50.4%);
 	}
 `;
+
 		const tabNavStyle = `
 	.channelTabs-tabContainer .channelTabs-tabNav {
 		display:flex;
@@ -3403,6 +3551,7 @@ module.exports = class ChannelTabs {
 		color: var(--interactive-normal);
 	}
 `;
+
 		const BaseStyle = `
 
 /* 
@@ -3950,6 +4099,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 //#endregion
 */
 `;
+
 		if (this.settings.compactStyle === true)
 			DOM.addStyle("channelTabs-style-compact", CompactVariables);
 		if (this.settings.compactStyle === false)
@@ -3963,6 +4113,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 		DOM.addStyle("channelTabs-style-constants", ConstantVariables);
 		DOM.addStyle("channelTabs-style", BaseStyle);
 	}
+
 	removeStyle() {
 		DOM.removeStyle("channelTabs-style-compact");
 		DOM.removeStyle("channelTabs-style-cozy");
@@ -3972,8 +4123,11 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 		DOM.removeStyle("channelTabs-style-constants");
 		DOM.removeStyle("channelTabs-style");
 	}
+
 	//#endregion
+
 	//#region Init/Default Functions
+
 	ifNoTabsExist() {
 		if (this.settings.tabs.length == 0)
 			this.settings.tabs = [
@@ -3985,6 +4139,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 				},
 			];
 	}
+
 	ifReopenLastChannelDefault() {
 		if (this.settings.reopenLastChannel) {
 			switching = true;
@@ -3997,11 +4152,15 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 			switching = false;
 		}
 	}
+
 	//#endregion
+
 	//#region Patches
+
 	async patchAppView(promiseState) {
 		const element = await onAdded(`.${TopbarSelector.app}`);
 		const AppView = ReactUtils.getInternalInstance(element).return.type;
+
 		if (promiseState.cancelled) return;
 		Patcher.after(AppView.prototype, "render", (thisObject, _, returnValue) => {
 			returnValue.props.children = [
@@ -4050,6 +4209,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 		forceUpdate();
 		patches.push(() => forceUpdate());
 	}
+
 	patchContextMenus() {
 		patches.push(
 			ContextMenu.patch("channel-context", (returnValue, props) => {
@@ -4058,12 +4218,14 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 					CreateTextChannelContextMenuChildren(this, props),
 				);
 			}),
+
 			ContextMenu.patch("thread-context", (returnValue, props) => {
 				if (!this.settings.showTabBar && !this.settings.showFavBar) return;
 				returnValue.props.children.push(
 					CreateThreadChannelContextMenuChildren(this, props),
 				);
 			}),
+
 			ContextMenu.patch("user-context", (returnValue, props) => {
 				if (!this.settings.showTabBar && !this.settings.showFavBar) return;
 				if (!returnValue) return;
@@ -4077,6 +4239,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 					CreateDMContextMenuChildren(this, props),
 				);
 			}),
+
 			ContextMenu.patch("gdm-context", (returnValue, props) => {
 				if (!this.settings.showTabBar && !this.settings.showFavBar) return;
 				if (!returnValue) return;
@@ -4084,6 +4247,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 					CreateGroupContextMenuChildren(this, props),
 				);
 			}),
+
 			ContextMenu.patch("guild-context", (returnValue, props) => {
 				if (!this.settings.showTabBar && !this.settings.showFavBar) return;
 				const channel = ChannelStore.getChannel(
@@ -4095,34 +4259,38 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 			}),
 		);
 	}
+
 	//#endregion
+
 	//#region Handlers
+
 	clickHandler(e) {
 		if (!e.target.matches(".channelTabs-favGroupBtn")) {
 			closeAllDropdowns();
 		}
 	}
+
 	keybindHandler(e) {
 		const keybinds = [
 			{
 				altKey: false,
 				ctrlKey: true,
 				shiftKey: false,
-				keyCode: 87,
+				keyCode: 87 /*w*/,
 				action: this.closeCurrentTab,
 			},
 			{
 				altKey: false,
 				ctrlKey: true,
 				shiftKey: false,
-				keyCode: 33,
+				keyCode: 33 /*pg_up*/,
 				action: this.previousTab,
 			},
 			{
 				altKey: false,
 				ctrlKey: true,
 				shiftKey: false,
-				keyCode: 34,
+				keyCode: 34 /*pg_down*/,
 				action: this.nextTab,
 			},
 		];
@@ -4136,10 +4304,14 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 				keybind.action();
 		});
 	}
+
 	//#endregion
+
 	//#region General Functions
+
 	onSwitch() {
 		if (switching) return;
+		//console.log(this);
 		if (TopBarRef.current) {
 			TopBarRef.current.setState(
 				{
@@ -4152,10 +4324,10 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 								selected: true,
 								currentStatus: getCurrentUserStatus(location.pathname),
 								iconUrl: getCurrentIconUrl(location.pathname),
-								channelId,
+								channelId: channelId,
 								minimized:
 									this.settings.tabs[
-										this.settings.tabs.findIndex((tab2) => tab2.selected)
+										this.settings.tabs.findIndex((tab) => tab.selected)
 									].minimized,
 							};
 						} else {
@@ -4174,7 +4346,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 					selected: true,
 					currentStatus: getCurrentUserStatus(location.pathname),
 					iconUrl: getCurrentIconUrl(location.pathname),
-					channelId,
+					channelId: channelId,
 					minimized:
 						this.settings.tabs[
 							this.settings.tabs.findIndex((tab) => tab.selected)
@@ -4182,14 +4354,18 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 				};
 		}
 	}
+
 	mergeItems(itemsTab, itemsFav) {
 		const out = [];
 		if (this.settings.showTabBar) out.push(...itemsTab);
 		if (this.settings.showFavBar) out.push(...itemsFav);
 		return out;
 	}
+
 	//#endregion
+
 	//#region Hotkey Functions
+
 	nextTab() {
 		if (TopBarRef.current)
 			TopBarRef.current.switchToTab(
@@ -4197,6 +4373,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 					TopBarRef.current.state.tabs.length,
 			);
 	}
+
 	previousTab() {
 		if (TopBarRef.current)
 			TopBarRef.current.switchToTab(
@@ -4206,12 +4383,16 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 					TopBarRef.current.state.tabs.length,
 			);
 	}
+
 	closeCurrentTab() {
 		if (TopBarRef.current)
 			TopBarRef.current.closeTab(TopBarRef.current.state.selectedTabIndex);
 	}
+
 	//#endregion
+
 	//#region Settings
+
 	get defaultVariables() {
 		return {
 			tabs: [],
@@ -4246,6 +4427,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 			useStandardNav: true,
 		};
 	}
+
 	getSettingsPath(useOldLocation) {
 		if (useOldLocation === true) {
 			return this.meta.name;
@@ -4254,6 +4436,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 			return this.meta.name + "_new" + (user_id != null ? "_" + user_id : "");
 		}
 	}
+
 	loadSettings() {
 		if (
 			Object.keys(Data.load(this.getSettingsPath(), "settings")).length === 0
@@ -4266,23 +4449,25 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 				Data.load(this.getSettingsPath(), "settings") ?? this.defaultVariables;
 		}
 		this.settings.favs = this.settings.favs.map((fav) => {
-			if (fav.channelId === void 0) {
+			if (fav.channelId === undefined) {
 				const match = fav.url.match(/^\/channels\/[^\/]+\/(\d+)$/);
 				if (match) return Object.assign(fav, { channelId: match[1] });
 			}
-			if (fav.groupId === void 0) {
+			if (fav.groupId === undefined) {
 				return Object.assign(fav, { groupId: -1 });
 			}
 			return fav;
 		});
 		this.saveSettings();
 	}
+
 	saveSettings() {
 		if (TopBarRef.current) {
 			this.settings.tabs = TopBarRef.current.state.tabs;
 			this.settings.favs = TopBarRef.current.state.favs;
 			this.settings.favGroups = TopBarRef.current.state.favGroups;
 		}
+
 		function isJSON(json) {
 			try {
 				JSON.parse(json);
@@ -4291,10 +4476,12 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 				return false;
 			}
 		}
+
 		const settingsPath = join(
 			Plugins.folder,
 			this.getSettingsPath() + ".config.json",
 		);
+
 		try {
 			if (!existsSync(settingsPath)) {
 				writeFileSync(settingsPath, JSON.stringify(this.settings, null, 4));
@@ -4308,6 +4495,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 			}
 		} catch (error) {
 			console.error("Error saving settings:", error);
+			// Fallback to using Data.save if file operations fail
 			try {
 				Data.save(this.getSettingsPath(), "settings", this.settings);
 			} catch (fallbackError) {
@@ -4315,6 +4503,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 			}
 		}
 	}
+
 	getSettingsPanel() {
 		return UI.buildSettingsPanel({
 			settings: [
@@ -4338,6 +4527,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 					],
 				},
 				//#endregion
+
 				//#region General Appearance
 				{
 					id: "generalAppearance",
@@ -4479,7 +4669,9 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 						},
 					],
 				},
+
 				//#endregion
+
 				//#region Behavior Settings
 				{
 					id: "behavior",
@@ -4518,8 +4710,11 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 						},
 					],
 				},
+
 				//#endregion
+
 				//#region Badge Visibility - Favs
+
 				{
 					id: "badgeVisibilityFavorites",
 					type: "category",
@@ -4587,8 +4782,11 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 						},
 					],
 				},
+
 				//#endregion
+
 				//#region Badge Visibility - Fav Groups
+
 				{
 					id: "badgeVisibilityFavoriteGroups",
 					type: "category",
@@ -4656,8 +4854,11 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 						},
 					],
 				},
+
 				//#endregion
+
 				//#region Badge Visibility - Tabs
+
 				{
 					id: "badgeVisibilityTabs",
 					type: "category",
@@ -4725,8 +4926,11 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 						},
 					],
 				},
+
 				//#endregion
+
 				//#region Badge Visibility - Active Tabs
+
 				{
 					id: "badgeVisibilityActiveTabs",
 					type: "category",
@@ -4794,10 +4998,13 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 						},
 					],
 				},
+
 				//#endregion
 			],
 		});
 	}
+
 	//#endregion
 };
-/*@end@*/
+
+//#endregion
