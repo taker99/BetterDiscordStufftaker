@@ -5,7 +5,7 @@
  * @version 2.6.15
  * @authorId 76052829285916672
  * @donate https://github.com/sponsors/samfundev
- * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/src/ChannelTabs/index.js
+ * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/src/ChannelTabs/index.jsx
  */
 /*@cc_on
 @if (@_jscript)
@@ -30,7 +30,7 @@
 	WScript.Quit();
 
 @else@*/
-// src/ChannelTabs/index.js
+// src/ChannelTabs/index.jsx
 var pluginMeta;
 function onAdded(selector) {
 	return new Promise((resolve) => {
@@ -148,7 +148,7 @@ var Textbox =
 		searchExports: true,
 	}) ??
 	((props) =>
-		React.createElement("input", {
+		/* @__PURE__ */ React.createElement("input", {
 			...props,
 			onChange: (e) => props?.onChange(e.target.value),
 		}));
@@ -189,25 +189,52 @@ var Icons = getModule((m) =>
 var Close =
 	Icons?.XSmallIcon ??
 	(() =>
-		React.createElement(
+		/* @__PURE__ */ React.createElement(
 			"div",
 			{ style: { width: "16px", "text-align": "center" } },
 			"\u2A2F",
 		));
 var PlusAlt =
-	Icons?.PlusSmallIcon ?? (() => React.createElement("b", null, "\uFF0B"));
+	Icons?.PlusSmallIcon ??
+	(() => /* @__PURE__ */ React.createElement("b", null, "\uFF0B"));
 var LeftCaret =
-	Icons?.ChevronLargeLeftIcon ?? (() => React.createElement("b", null, "<"));
+	Icons?.ChevronLargeLeftIcon ??
+	(() => /* @__PURE__ */ React.createElement("b", null, "<"));
 var RightCaret =
-	Icons?.ChevronLargeRightIcon ?? (() => React.createElement("b", null, ">"));
+	Icons?.ChevronLargeRightIcon ??
+	(() => /* @__PURE__ */ React.createElement("b", null, ">"));
 var DefaultUserIconGrey = "https://cdn.discordapp.com/embed/avatars/0.png";
 var DefaultUserIconGreen = "https://cdn.discordapp.com/embed/avatars/1.png";
 var DefaultUserIconBlue = "https://cdn.discordapp.com/embed/avatars/2.png";
-var SettingsMenuIcon = `<svg class="channelTabs-settingsIcon" aria-hidden="false" viewBox="0 0 80 80">
-<rect fill="var(--interactive-normal)" x="20" y="15" width="50" height="10"></rect>
-<rect fill="var(--interactive-normal)" x="20" y="35" width="50" height="10"></rect>
-<rect fill="var(--interactive-normal)" x="20" y="55" width="50" height="10"></rect>
-</svg>`;
+var SettingsMenuIcon = /* @__PURE__ */ React.createElement(
+	"svg",
+	{
+		class: "channelTabs-settingsIcon",
+		"aria-hidden": "false",
+		viewBox: "0 0 80 80",
+	},
+	/* @__PURE__ */ React.createElement("rect", {
+		fill: "var(--interactive-normal)",
+		x: "20",
+		y: "15",
+		width: "50",
+		height: "10",
+	}),
+	/* @__PURE__ */ React.createElement("rect", {
+		fill: "var(--interactive-normal)",
+		x: "20",
+		y: "35",
+		width: "50",
+		height: "10",
+	}),
+	/* @__PURE__ */ React.createElement("rect", {
+		fill: "var(--interactive-normal)",
+		x: "20",
+		y: "55",
+		width: "50",
+		height: "10",
+	}),
+);
 var switching = false;
 var patches = [];
 var currentTabDragIndex = -1;
@@ -800,7 +827,7 @@ function CreateSettingsContextMenu(instance, e) {
 							id: "shortcutLabelKeys",
 							disabled: true,
 							render: () => {
-								return React.createElement(
+								return /* @__PURE__ */ React.createElement(
 									"div",
 									{
 										style: {
@@ -926,12 +953,10 @@ Ctrl + PgDn - Navigate to Right Tab
 								{
 									id: "tabWidthMin",
 									render: () => {
-										return React.createElement(
+										return /* @__PURE__ */ React.createElement(
 											"div",
-											{
-												className: "channelTabs-sliderContainer",
-											},
-											React.createElement(Slider, {
+											{ className: "channelTabs-sliderContainer" },
+											/* @__PURE__ */ React.createElement(Slider, {
 												"aria-label": "Minimum Tab Width",
 												className: "channelTabs-slider",
 												mini: true,
@@ -1681,12 +1706,12 @@ var GetTabStyles = (viewMode, item) => {
 	return "";
 };
 var TabIcon = (props) =>
-	React.createElement("img", {
+	/* @__PURE__ */ React.createElement("img", {
 		className: "channelTabs-tabIcon",
 		src: !props.iconUrl ? DefaultUserIconGrey : props.iconUrl,
 	});
 var TabStatus = (props) =>
-	React.createElement("rect", {
+	/* @__PURE__ */ React.createElement("rect", {
 		width: 6,
 		height: 6,
 		x: 14,
@@ -1700,17 +1725,15 @@ var TabStatus = (props) =>
 			(props.currentStatus == "none" ? " channelTabs-noneIcon" : ""),
 	});
 var TabName = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"span",
-		{
-			className: "channelTabs-tabName",
-		},
+		{ className: "channelTabs-tabName" },
 		props.name,
 	);
 var TabClose = (props) =>
 	props.tabCount < 2
 		? null
-		: React.createElement(
+		: /* @__PURE__ */ React.createElement(
 				"div",
 				{
 					className: "channelTabs-closeTab",
@@ -1719,10 +1742,10 @@ var TabClose = (props) =>
 						props.closeTab();
 					},
 				},
-				React.createElement(Close, {}),
+				/* @__PURE__ */ React.createElement(Close, null),
 			);
 var TabUnreadBadge = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className:
@@ -1733,7 +1756,7 @@ var TabUnreadBadge = (props) =>
 		props.unreadCount + (props.unreadEstimated ? "+" : ""),
 	);
 var TabMentionBadge = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className:
@@ -1746,20 +1769,17 @@ var TabMentionBadge = (props) =>
 var TabTypingBadge = ({ viewMode, isTyping, userIds }) => {
 	if (isTyping === false || !Spinner) return null;
 	const text = getChannelTypingTooltipText(userIds);
-	return React.createElement(
+	return /* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className:
 				"channelTabs-TypingContainer" + GetTabStyles(viewMode, "typingBadge"),
 		},
-		React.createElement(
+		/* @__PURE__ */ React.createElement(
 			Tooltip,
-			{
-				text,
-				position: "bottom",
-			},
+			{ text, position: "bottom" },
 			(tooltipProps) =>
-				React.createElement(Spinner, {
+				/* @__PURE__ */ React.createElement(Spinner, {
 					...tooltipProps,
 					type: "pulsingEllipsis",
 					className: `channelTabs-typingBadge`,
@@ -1772,10 +1792,10 @@ var TabTypingBadge = ({ viewMode, isTyping, userIds }) => {
 	);
 };
 var CozyTab = (props) => {
-	return React.createElement(
+	return /* @__PURE__ */ React.createElement(
 		"div",
-		{},
-		React.createElement(
+		null,
+		/* @__PURE__ */ React.createElement(
 			"svg",
 			{
 				className: "channelTabs-tabIconWrapper",
@@ -1784,12 +1804,14 @@ var CozyTab = (props) => {
 				viewBox: "0 0 20 20",
 			},
 			props.currentStatus === "none"
-				? React.createElement(
+				? /* @__PURE__ */ React.createElement(
 						"foreignObject",
 						{ x: 0, y: 0, width: 20, height: 20 },
-						React.createElement(TabIcon, { iconUrl: props.iconUrl }),
+						/* @__PURE__ */ React.createElement(TabIcon, {
+							iconUrl: props.iconUrl,
+						}),
 					)
-				: React.createElement(
+				: /* @__PURE__ */ React.createElement(
 						"foreignObject",
 						{
 							x: 0,
@@ -1798,34 +1820,34 @@ var CozyTab = (props) => {
 							height: 20,
 							mask: "url(#svg-mask-avatar-status-round-20)",
 						},
-						React.createElement(TabIcon, { iconUrl: props.iconUrl }),
+						/* @__PURE__ */ React.createElement(TabIcon, {
+							iconUrl: props.iconUrl,
+						}),
 					),
 			props.currentStatus === "none"
 				? null
-				: React.createElement(TabStatus, {
+				: /* @__PURE__ */ React.createElement(TabStatus, {
 						currentStatus: props.currentStatus,
 					}),
 		),
-		React.createElement(TabName, { name: props.name }),
-		React.createElement(
+		/* @__PURE__ */ React.createElement(TabName, { name: props.name }),
+		/* @__PURE__ */ React.createElement(
 			"div",
-			{
-				className: "channelTabs-gridContainer",
-			},
-			React.createElement(
+			{ className: "channelTabs-gridContainer" },
+			/* @__PURE__ */ React.createElement(
 				"div",
 				{ className: "channelTabs-gridItemBR" },
 				!(props.selected
 					? props.showActiveTabTypingBadge
 					: props.showTabTypingBadge)
 					? null
-					: React.createElement(TabTypingBadge, {
+					: /* @__PURE__ */ React.createElement(TabTypingBadge, {
 							viewMode: "alt",
 							isTyping: props.hasUsersTyping,
 							userIds: getChannelTypingUsers(props.channelId),
 						}),
 			),
-			React.createElement(
+			/* @__PURE__ */ React.createElement(
 				"div",
 				{ className: "channelTabs-gridItemTL" },
 				!(props.selected
@@ -1839,7 +1861,7 @@ var CozyTab = (props) => {
 									? props.showEmptyActiveTabBadges
 									: props.showEmptyTabBadges) && !props.hasUnread
 							? null
-							: React.createElement(TabUnreadBadge, {
+							: /* @__PURE__ */ React.createElement(TabUnreadBadge, {
 									viewMode: "alt",
 									unreadCount: props.unreadCount,
 									unreadEstimated: props.unreadEstimated,
@@ -1847,7 +1869,7 @@ var CozyTab = (props) => {
 									mentionCount: props.mentionCount,
 								}),
 			),
-			React.createElement(
+			/* @__PURE__ */ React.createElement(
 				"div",
 				{ className: "channelTabs-gridItemTR" },
 				!(props.selected
@@ -1858,22 +1880,22 @@ var CozyTab = (props) => {
 								? props.showEmptyActiveTabBadges
 								: props.showEmptyTabBadges) && props.mentionCount === 0
 						? null
-						: React.createElement(TabMentionBadge, {
+						: /* @__PURE__ */ React.createElement(TabMentionBadge, {
 								viewMode: "alt",
 								mentionCount: props.mentionCount,
 							}),
 			),
-			React.createElement("div", {
+			/* @__PURE__ */ React.createElement("div", {
 				className: "channelTabs-gridItemBL",
 			}),
 		),
 	);
 };
 var CompactTab = (props) => {
-	return React.createElement(
+	return /* @__PURE__ */ React.createElement(
 		"div",
-		{},
-		React.createElement(
+		null,
+		/* @__PURE__ */ React.createElement(
 			"svg",
 			{
 				className: "channelTabs-tabIconWrapper",
@@ -1882,12 +1904,14 @@ var CompactTab = (props) => {
 				viewBox: "0 0 20 20",
 			},
 			props.currentStatus === "none"
-				? React.createElement(
+				? /* @__PURE__ */ React.createElement(
 						"foreignObject",
 						{ x: 0, y: 0, width: 20, height: 20 },
-						React.createElement(TabIcon, { iconUrl: props.iconUrl }),
+						/* @__PURE__ */ React.createElement(TabIcon, {
+							iconUrl: props.iconUrl,
+						}),
 					)
-				: React.createElement(
+				: /* @__PURE__ */ React.createElement(
 						"foreignObject",
 						{
 							x: 0,
@@ -1896,23 +1920,25 @@ var CompactTab = (props) => {
 							height: 20,
 							mask: "url(#svg-mask-avatar-status-round-20)",
 						},
-						React.createElement(TabIcon, { iconUrl: props.iconUrl }),
+						/* @__PURE__ */ React.createElement(TabIcon, {
+							iconUrl: props.iconUrl,
+						}),
 					),
 			props.currentStatus === "none"
 				? null
-				: React.createElement(TabStatus, {
+				: /* @__PURE__ */ React.createElement(TabStatus, {
 						currentStatus: props.currentStatus,
 					}),
 		),
-		React.createElement(TabName, { name: props.name }),
+		/* @__PURE__ */ React.createElement(TabName, { name: props.name }),
 		!(props.selected
 			? props.showActiveTabTypingBadge
 			: props.showTabTypingBadge)
 			? null
-			: React.createElement(
+			: /* @__PURE__ */ React.createElement(
 					React.Fragment,
-					{},
-					React.createElement(TabTypingBadge, {
+					null,
+					/* @__PURE__ */ React.createElement(TabTypingBadge, {
 						viewMode: "classic",
 						isTyping: props.hasUsersTyping,
 						userIds: getChannelTypingUsers(props.channelId),
@@ -1922,9 +1948,9 @@ var CompactTab = (props) => {
 			? props.showActiveTabUnreadBadges
 			: props.showTabUnreadBadges)
 			? null
-			: React.createElement(
+			: /* @__PURE__ */ React.createElement(
 					React.Fragment,
-					{},
+					null,
 					!props.channelId ||
 						(ChannelStore.getChannel(props.channelId)?.isPrivate() ?? true)
 						? null
@@ -1932,7 +1958,7 @@ var CompactTab = (props) => {
 									? props.showEmptyActiveTabBadges
 									: props.showEmptyTabBadges) && !props.hasUnread
 							? null
-							: React.createElement(TabUnreadBadge, {
+							: /* @__PURE__ */ React.createElement(TabUnreadBadge, {
 									viewMode: "classic",
 									unreadCount: props.unreadCount,
 									unreadEstimated: props.unreadEstimated,
@@ -1944,14 +1970,14 @@ var CompactTab = (props) => {
 			? props.showActiveTabMentionBadges
 			: props.showTabMentionBadges)
 			? null
-			: React.createElement(
+			: /* @__PURE__ */ React.createElement(
 					React.Fragment,
-					{},
+					null,
 					!(props.selected
 						? props.showEmptyActiveTabBadges
 						: props.showEmptyTabBadges) && props.mentionCount === 0
 						? null
-						: React.createElement(TabMentionBadge, {
+						: /* @__PURE__ */ React.createElement(TabMentionBadge, {
 								viewMode: "classic",
 								mentionCount: props.mentionCount,
 							}),
@@ -1959,7 +1985,7 @@ var CompactTab = (props) => {
 	);
 };
 var Tab = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className:
@@ -2028,7 +2054,7 @@ var Tab = (props) =>
 			},
 		},
 		props.compactStyle ? CompactTab(props) : CozyTab(props),
-		React.createElement(TabClose, {
+		/* @__PURE__ */ React.createElement(TabClose, {
 			tabCount: props.tabCount,
 			closeTab: () => props.closeTab(props.tabIndex),
 		}),
@@ -2053,12 +2079,12 @@ var FavMoveToGroupList = (props) => {
 	return groups;
 };
 var FavIcon = (props) =>
-	React.createElement("img", {
+	/* @__PURE__ */ React.createElement("img", {
 		className: "channelTabs-favIcon",
 		src: !props.iconUrl ? DefaultUserIconGrey : props.iconUrl,
 	});
 var FavStatus = (props) =>
-	React.createElement("rect", {
+	/* @__PURE__ */ React.createElement("rect", {
 		width: 6,
 		height: 6,
 		x: 14,
@@ -2072,15 +2098,13 @@ var FavStatus = (props) =>
 			(props.currentStatus == "none" ? " channelTabs-noneIcon" : ""),
 	});
 var FavName = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"span",
-		{
-			className: "channelTabs-favName",
-		},
+		{ className: "channelTabs-favName" },
 		props.name,
 	);
 var FavUnreadBadge = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className:
@@ -2090,7 +2114,7 @@ var FavUnreadBadge = (props) =>
 		props.unreadCount + (props.unreadEstimated ? "+" : ""),
 	);
 var FavMentionBadge = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className:
@@ -2102,14 +2126,11 @@ var FavMentionBadge = (props) =>
 var FavTypingBadge = ({ isTyping, userIds }) => {
 	if (!Spinner) return null;
 	const text = getChannelTypingTooltipText(userIds);
-	return React.createElement(
+	return /* @__PURE__ */ React.createElement(
 		Tooltip,
-		{
-			text,
-			position: "bottom",
-		},
+		{ text, position: "bottom" },
 		(tooltipProps) =>
-			React.createElement(
+			/* @__PURE__ */ React.createElement(
 				"div",
 				{
 					...tooltipProps,
@@ -2117,7 +2138,7 @@ var FavTypingBadge = ({ isTyping, userIds }) => {
 						"channelTabs-typingBadge" +
 						(!isTyping ? " channelTabs-noTyping" : ""),
 				},
-				React.createElement(Spinner, {
+				/* @__PURE__ */ React.createElement(Spinner, {
 					type: "pulsingEllipsis",
 					animated: !isTyping ? false : true,
 				}),
@@ -2125,7 +2146,7 @@ var FavTypingBadge = ({ isTyping, userIds }) => {
 	);
 };
 var Fav = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className:
@@ -2202,7 +2223,7 @@ var Fav = (props) =>
 				document.addEventListener("mouseup", mouseUp);
 			},
 		},
-		React.createElement(
+		/* @__PURE__ */ React.createElement(
 			"svg",
 			{
 				className: "channelTabs-favIconWrapper",
@@ -2211,12 +2232,14 @@ var Fav = (props) =>
 				viewBox: "0 0 20 20",
 			},
 			props.currentStatus === "none"
-				? React.createElement(
+				? /* @__PURE__ */ React.createElement(
 						"foreignObject",
 						{ x: 0, y: 0, width: 20, height: 20 },
-						React.createElement(FavIcon, { iconUrl: props.iconUrl }),
+						/* @__PURE__ */ React.createElement(FavIcon, {
+							iconUrl: props.iconUrl,
+						}),
 					)
-				: React.createElement(
+				: /* @__PURE__ */ React.createElement(
 						"foreignObject",
 						{
 							x: 0,
@@ -2225,25 +2248,27 @@ var Fav = (props) =>
 							height: 20,
 							mask: "url(#svg-mask-avatar-status-round-20)",
 						},
-						React.createElement(FavIcon, { iconUrl: props.iconUrl }),
+						/* @__PURE__ */ React.createElement(FavIcon, {
+							iconUrl: props.iconUrl,
+						}),
 					),
 			props.currentStatus === "none"
 				? null
-				: React.createElement(FavStatus, {
+				: /* @__PURE__ */ React.createElement(FavStatus, {
 						currentStatus: props.currentStatus,
 					}),
 		),
-		React.createElement(FavName, { name: props.name }),
+		/* @__PURE__ */ React.createElement(FavName, { name: props.name }),
 		!(props.showFavUnreadBadges && (props.channelId || props.guildId))
 			? null
-			: React.createElement(
+			: /* @__PURE__ */ React.createElement(
 					React.Fragment,
-					{},
+					null,
 					isChannelDM(props.channelId)
 						? null
 						: !props.showEmptyFavBadges && props.unreadCount === 0
 							? null
-							: React.createElement(FavUnreadBadge, {
+							: /* @__PURE__ */ React.createElement(FavUnreadBadge, {
 									unreadCount: props.unreadCount,
 									unreadEstimated: props.unreadEstimated,
 									hasUnread: props.hasUnread,
@@ -2251,41 +2276,36 @@ var Fav = (props) =>
 				),
 		!(props.showFavMentionBadges && (props.channelId || props.guildId))
 			? null
-			: React.createElement(
+			: /* @__PURE__ */ React.createElement(
 					React.Fragment,
-					{},
+					null,
 					!props.showEmptyFavBadges && props.mentionCount === 0
 						? null
-						: React.createElement(FavMentionBadge, {
+						: /* @__PURE__ */ React.createElement(FavMentionBadge, {
 								mentionCount: props.mentionCount,
 							}),
 				),
 		!(props.showFavTypingBadge && (props.channelId || props.guildId))
 			? null
-			: React.createElement(
+			: /* @__PURE__ */ React.createElement(
 					React.Fragment,
-					{},
-					React.createElement(FavTypingBadge, {
+					null,
+					/* @__PURE__ */ React.createElement(FavTypingBadge, {
 						isTyping: props.isTyping,
 						userIds: getChannelTypingUsers(props.channelId),
 					}),
 				),
 	);
 var NewTab = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
-		{
-			className: "channelTabs-newTab",
-			onClick: props.openNewTab,
-		},
-		React.createElement(PlusAlt, {}),
+		{ className: "channelTabs-newTab", onClick: props.openNewTab },
+		/* @__PURE__ */ React.createElement(PlusAlt, null),
 	);
 var NoFavItemsPlaceholder = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"span",
-		{
-			className: "channelTabs-noFavNotice",
-		},
+		{ className: "channelTabs-noFavNotice" },
 		"You don't have any favs yet. Right click a tab to mark it as favourite. You can disable this bar in the settings.",
 	);
 var FavItems = (props) => {
@@ -2302,7 +2322,7 @@ var FavItems = (props) => {
 							[UnreadStateStore, UserTypingStore, SelectedChannelStore],
 							() => updateFavEntry(fav),
 						)((result) =>
-							React.createElement(Fav, {
+							/* @__PURE__ */ React.createElement(Fav, {
 								name: fav.name,
 								iconUrl: fav.iconUrl,
 								url: fav.url,
@@ -2340,7 +2360,7 @@ var FavItems = (props) => {
 		});
 };
 var FavFolder = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className: "channelTabs-favGroup",
@@ -2395,7 +2415,7 @@ var FavFolder = (props) =>
 				document.addEventListener("mouseup", mouseUp);
 			},
 		},
-		React.createElement(
+		/* @__PURE__ */ React.createElement(
 			"div",
 			{
 				className: "channelTabs-favGroupBtn",
@@ -2411,27 +2431,27 @@ var FavFolder = (props) =>
 			props.showFavGroupMentionBadges
 				? props.mentionCountGroup == 0 && !props.showEmptyFavGroupBadges
 					? null
-					: React.createElement(FavMentionBadge, {
+					: /* @__PURE__ */ React.createElement(FavMentionBadge, {
 							mentionCount: props.mentionCountGroup,
 						})
 				: null,
 			props.showFavGroupUnreadBadges
 				? props.unreadCountGroup == 0 && !props.showEmptyFavGroupBadges
 					? null
-					: React.createElement(FavUnreadBadge, {
+					: /* @__PURE__ */ React.createElement(FavUnreadBadge, {
 							unreadCount: props.unreadCountGroup,
 							unreadEstimated: props.unreadEstimatedGroup,
 							hasUnread: props.hasUnreadGroup,
 						})
 				: null,
 			props.showFavGroupTypingBadge && props.isTypingGroup
-				? React.createElement(FavTypingBadge, {
+				? /* @__PURE__ */ React.createElement(FavTypingBadge, {
 						isTyping: props.isTypingGroup,
 						userIds: null,
 					})
 				: null,
 		),
-		React.createElement(
+		/* @__PURE__ */ React.createElement(
 			"div",
 			{
 				className:
@@ -2441,7 +2461,7 @@ var FavFolder = (props) =>
 						: ""),
 				id: "favGroup-content-" + props.groupIndex,
 			},
-			React.createElement(FavItems, {
+			/* @__PURE__ */ React.createElement(FavItems, {
 				group: props.favGroup,
 				...props,
 			}),
@@ -2483,7 +2503,7 @@ var FavFolders = (props) => {
 					};
 				},
 			)((result) => {
-				return React.createElement(FavFolder, {
+				return /* @__PURE__ */ React.createElement(FavFolder, {
 					groupIndex: index,
 					groupCount: props.favGroups.length,
 					favGroup,
@@ -2523,18 +2543,16 @@ function closeCurrentTab() {
 		TopBarRef.current.closeTab(TopBarRef.current.state.selectedTabIndex);
 }
 var TabBar = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className: "channelTabs-tabContainer",
 			"data-tab-count": props.tabs.length,
 		},
-		React.createElement(
+		/* @__PURE__ */ React.createElement(
 			"div",
-			{
-				className: "channelTabs-tabNav",
-			},
-			React.createElement(
+			{ className: "channelTabs-tabNav" },
+			/* @__PURE__ */ React.createElement(
 				"div",
 				{
 					className: "channelTabs-tabNavLeft",
@@ -2549,9 +2567,9 @@ var TabBar = (props) =>
 							: previousTab();
 					},
 				},
-				React.createElement(LeftCaret, {}),
+				/* @__PURE__ */ React.createElement(LeftCaret, null),
 			),
-			React.createElement(
+			/* @__PURE__ */ React.createElement(
 				"div",
 				{
 					className: "channelTabs-tabNavRight",
@@ -2566,9 +2584,9 @@ var TabBar = (props) =>
 							: nextTab();
 					},
 				},
-				React.createElement(RightCaret, {}),
+				/* @__PURE__ */ React.createElement(RightCaret, null),
 			),
-			React.createElement(
+			/* @__PURE__ */ React.createElement(
 				"div",
 				{
 					className: "channelTabs-tabNavClose",
@@ -2577,7 +2595,7 @@ var TabBar = (props) =>
 					},
 					onContextMenu: props.openNewTab,
 				},
-				React.createElement(Close, {}),
+				/* @__PURE__ */ React.createElement(Close, null),
 			),
 		),
 		props.tabs.map((tab, tabIndex) =>
@@ -2593,7 +2611,7 @@ var TabBar = (props) =>
 						currentStatus: getCurrentUserStatus(tab.url),
 					}),
 				)((result) =>
-					React.createElement(Tab, {
+					/* @__PURE__ */ React.createElement(Tab, {
 						switchToTab: props.switchToTab,
 						closeTab: props.closeTab,
 						addToFavs: props.addToFavs,
@@ -2634,12 +2652,12 @@ var TabBar = (props) =>
 				),
 			),
 		),
-		React.createElement(NewTab, {
+		/* @__PURE__ */ React.createElement(NewTab, {
 			openNewTab: props.openNewTab,
 		}),
 	);
 var FavBar = (props) =>
-	React.createElement(
+	/* @__PURE__ */ React.createElement(
 		"div",
 		{
 			className:
@@ -2650,10 +2668,10 @@ var FavBar = (props) =>
 				CreateFavBarContextMenu(props, e);
 			},
 		},
-		React.createElement(FavFolders, props),
+		/* @__PURE__ */ React.createElement(FavFolders, { ...props }),
 		props.favs.length > 0
-			? React.createElement(FavItems, { group: null, ...props })
-			: React.createElement(NoFavItemsPlaceholder, {}),
+			? /* @__PURE__ */ React.createElement(FavItems, { group: null, ...props })
+			: /* @__PURE__ */ React.createElement(NoFavItemsPlaceholder, null),
 	);
 var TopBar = class TopBar2 extends React.Component {
 	//#region Constructor
@@ -2841,7 +2859,7 @@ var TopBar = class TopBar2 extends React.Component {
 		let name = currentName;
 		BdApi.showConfirmationModal(
 			"What should the new name be?",
-			React.createElement(Textbox, {
+			/* @__PURE__ */ React.createElement(Textbox, {
 				onChange: (newContent) => (name = newContent.trim()),
 			}),
 			{
@@ -2941,7 +2959,7 @@ var TopBar = class TopBar2 extends React.Component {
 		let name = "New Group";
 		BdApi.showConfirmationModal(
 			"What should the new name be?",
-			React.createElement(Textbox, {
+			/* @__PURE__ */ React.createElement(Textbox, {
 				onChange: (newContent) => (name = newContent.trim()),
 			}),
 			{
@@ -2964,7 +2982,7 @@ var TopBar = class TopBar2 extends React.Component {
 		let name = currentName;
 		BdApi.showConfirmationModal(
 			"What should the new name be?",
-			React.createElement(Textbox, {
+			/* @__PURE__ */ React.createElement(Textbox, {
 				onChange: (newContent) => (name = newContent.trim()),
 			}),
 			{
@@ -3163,23 +3181,24 @@ var TopBar = class TopBar2 extends React.Component {
 	//#endregion
 	//#region Other Functions
 	render() {
-		return React.createElement(
+		return /* @__PURE__ */ React.createElement(
 			"div",
-			{
-				id: "channelTabs-container",
-			},
+			{ id: "channelTabs-container" },
 			!this.state.showQuickSettings
 				? null
-				: React.createElement("div", {
-						id: "channelTabs-settingsMenu",
-						dangerouslySetInnerHTML: { __html: SettingsMenuIcon },
-						onClick: (e) => {
-							CreateSettingsContextMenu(this, e);
+				: /* @__PURE__ */ React.createElement(
+						"div",
+						{
+							id: "channelTabs-settingsMenu",
+							onClick: (e) => {
+								CreateSettingsContextMenu(this, e);
+							},
 						},
-					}),
+						SettingsMenuIcon,
+					),
 			!this.state.showTabBar
 				? null
-				: React.createElement(TabBar, {
+				: /* @__PURE__ */ React.createElement(TabBar, {
 						tabs: this.state.tabs,
 						showTabUnreadBadges: this.state.showTabUnreadBadges,
 						showTabMentionBadges: this.state.showTabMentionBadges,
@@ -3203,7 +3222,7 @@ var TopBar = class TopBar2 extends React.Component {
 					}),
 			!this.state.showFavBar
 				? null
-				: React.createElement(FavBar, {
+				: /* @__PURE__ */ React.createElement(FavBar, {
 						favs: this.state.favs,
 						favGroups: this.state.favGroups,
 						showFavUnreadBadges: this.state.showFavUnreadBadges,
@@ -4005,7 +4024,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 		if (promiseState.cancelled) return;
 		Patcher.after(AppView.prototype, "render", (thisObject, _, returnValue) => {
 			returnValue.props.children = [
-				React.createElement(TopBar, {
+				/* @__PURE__ */ React.createElement(TopBar, {
 					reopenLastChannel: this.settings.reopenLastChannel,
 					showTabBar: this.settings.showTabBar,
 					showFavBar: this.settings.showFavBar,
