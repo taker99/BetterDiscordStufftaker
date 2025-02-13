@@ -53,11 +53,10 @@ function onAdded(selector) {
 		observer.observe(document.body, { subtree: true, childList: true });
 	});
 }
-var { ContextMenu, Patcher, Webpack, Plugins, React, DOM, ReactUtils, UI } =
-	new BdApi("ChannelTabs");
+var { ContextMenu, Patcher, Webpack, React, DOM, ReactUtils, UI } = new BdApi(
+	"ChannelTabs",
+);
 var { Data } = BdApi;
-var { writeFileSync, readFileSync, existsSync } = require("fs");
-var { join } = require("path");
 function getModule(filter, options = {}) {
 	const foundModule = options.fail
 		? void 0
@@ -4300,36 +4299,10 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 			this.settings.favs = TopBarRef.current.state.favs;
 			this.settings.favGroups = TopBarRef.current.state.favGroups;
 		}
-		function isJSON(json) {
-			try {
-				JSON.parse(json);
-				return true;
-			} catch {
-				return false;
-			}
-		}
-		const settingsPath = join(
-			Plugins.folder,
-			this.getSettingsPath() + ".config.json",
-		);
 		try {
-			if (!existsSync(settingsPath)) {
-				writeFileSync(settingsPath, JSON.stringify(this.settings, null, 4));
-			} else {
-				const currentSettings = readFileSync(settingsPath, "utf8");
-				if (!isJSON(currentSettings)) {
-					writeFileSync(settingsPath, JSON.stringify(this.settings, null, 4));
-				} else {
-					Data.save(this.getSettingsPath(), "settings", this.settings);
-				}
-			}
+			Data.save(this.getSettingsPath(), "settings", this.settings);
 		} catch (error) {
 			console.error("Error saving settings:", error);
-			try {
-				Data.save(this.getSettingsPath(), "settings", this.settings);
-			} catch (fallbackError) {
-				console.error("Fallback save failed:", fallbackError);
-			}
 		}
 	}
 	getSettingsPanel() {
