@@ -2,33 +2,9 @@
 
 let pluginMeta;
 
-// Promsified from https://github.com/BetterDiscord/BetterDiscord/blob/4d19634e22ca1683dd899075f95dd625bb7bf55f/renderer/src/modules/dommanager.js#L171
-function onAdded(selector) {
-	return new Promise((resolve) => {
-		if (document.body.querySelector(selector))
-			return resolve(document.body.querySelector(selector));
-
-		const observer = new MutationObserver((mutations) => {
-			for (let m = 0; m < mutations.length; m++) {
-				for (let i = 0; i < mutations[m].addedNodes.length; i++) {
-					const mutation = mutations[m].addedNodes[i];
-					if (mutation.nodeType === 3) continue; // ignore text
-					const directMatch = mutation.matches(selector) && mutation;
-					const childrenMatch = mutation.querySelector(selector);
-					if (directMatch || childrenMatch) {
-						observer.disconnect();
-						return resolve(directMatch ?? childrenMatch);
-					}
-				}
-			}
-		});
-
-		observer.observe(document.body, { subtree: true, childList: true });
-	});
-}
-
-const { ContextMenu, Patcher, Webpack, React, DOM, ReactUtils, UI } =
-	new BdApi("ChannelTabs");
+const { ContextMenu, Patcher, Webpack, React, DOM, ReactUtils, UI } = new BdApi(
+	"ChannelTabs",
+);
 const { Data } = BdApi;
 
 function getModule(filter, options = {}) {
@@ -105,7 +81,7 @@ for (const [key, value] of Object.entries(Webpack.Filters)) {
 	};
 }
 
-const { byKeys, byStrings, byStoreName } = Filters;
+const { byKeys, byStrings, byStoreName, bySource } = Filters;
 const NavigationUtils = {
 	transitionToGuild: getModule(byKeys("transitionToGuildSync"))
 		?.transitionToGuildSync,
@@ -156,8 +132,9 @@ const Slider = getModule(
 	{ searchExports: true },
 );
 const NavShortcuts = getModule(byKeys("NAVIGATE_BACK", "NAVIGATE_FORWARD"));
-const TopbarSelector = getModule(byKeys("app", "layers"), {
-	name: "Topbar Selector",
+const AppView = getModule(bySource('"Shakeable is shaken when not mounted"'), {
+	searchExports: true,
+	name: "AppView",
 	fatal: true,
 });
 
@@ -4059,12 +4036,9 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 
 	//#region Patches
 
-	async patchAppView(promiseState) {
-		const element = await onAdded(`.${TopbarSelector.app}`);
-		const AppView = ReactUtils.getInternalInstance(element).return.type;
-
+	patchAppView(promiseState) {
 		if (promiseState.cancelled) return;
-		Patcher.after(AppView.prototype, "render", (thisObject, _, returnValue) => {
+		Patcher.after(AppView, "type", (thisObject, _, returnValue) => {
 			returnValue.props.children = [
 				<TopBar
 					reopenLastChannel={this.settings.reopenLastChannel}
@@ -4103,10 +4077,24 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 				returnValue.props.children,
 			].flat();
 		});
+
 		const forceUpdate = () => {
-			const { app } = getModule(byKeys("app", "layers")) || {};
-			const query = document.querySelector(`.${app}`);
-			if (query) ReactUtils.getOwnerInstance(query)?.forceUpdate?.();
+			const rootElement = document.getElementById("app-mount");
+			const containerKey = Object.keys(rootElement).find((k) =>
+				k.startsWith("__reactContainer$"),
+			);
+			const target = BdApi.Utils.findInTree(
+				rootElement[containerKey],
+				(c) => c.stateNode?.isReactComponent,
+				{ walkable: ["child"] },
+			);
+			const { render } = target.stateNode;
+			if (render.toString().includes("null")) return;
+			target.stateNode.render = () => null;
+			target.stateNode.forceUpdate(() => {
+				target.stateNode.render = render;
+				target.stateNode.forceUpdate();
+			});
 		};
 		forceUpdate();
 		patches.push(() => forceUpdate());

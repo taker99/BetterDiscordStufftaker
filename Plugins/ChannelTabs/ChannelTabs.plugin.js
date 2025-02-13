@@ -32,27 +32,6 @@
 @else@*/
 // src/ChannelTabs/index.jsx
 var pluginMeta;
-function onAdded(selector) {
-	return new Promise((resolve) => {
-		if (document.body.querySelector(selector))
-			return resolve(document.body.querySelector(selector));
-		const observer = new MutationObserver((mutations) => {
-			for (let m = 0; m < mutations.length; m++) {
-				for (let i = 0; i < mutations[m].addedNodes.length; i++) {
-					const mutation = mutations[m].addedNodes[i];
-					if (mutation.nodeType === 3) continue;
-					const directMatch = mutation.matches(selector) && mutation;
-					const childrenMatch = mutation.querySelector(selector);
-					if (directMatch || childrenMatch) {
-						observer.disconnect();
-						return resolve(directMatch ?? childrenMatch);
-					}
-				}
-			}
-		});
-		observer.observe(document.body, { subtree: true, childList: true });
-	});
-}
 var { ContextMenu, Patcher, Webpack, React, DOM, ReactUtils, UI } = new BdApi(
 	"ChannelTabs",
 );
@@ -121,7 +100,7 @@ for (const [key, value] of Object.entries(Webpack.Filters)) {
 		return result;
 	};
 }
-var { byKeys, byStrings, byStoreName } = Filters;
+var { byKeys, byStrings, byStoreName, bySource } = Filters;
 var NavigationUtils = {
 	transitionToGuild: getModule(byKeys("transitionToGuildSync"))
 		?.transitionToGuildSync,
@@ -174,8 +153,9 @@ var Slider = getModule(
 	{ searchExports: true },
 );
 var NavShortcuts = getModule(byKeys("NAVIGATE_BACK", "NAVIGATE_FORWARD"));
-var TopbarSelector = getModule(byKeys("app", "layers"), {
-	name: "Topbar Selector",
+var AppView = getModule(bySource('"Shakeable is shaken when not mounted"'), {
+	searchExports: true,
+	name: "AppView",
 	fatal: true,
 });
 var Icons = getModule((m) =>
@@ -4011,11 +3991,9 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	}
 	//#endregion
 	//#region Patches
-	async patchAppView(promiseState) {
-		const element = await onAdded(`.${TopbarSelector.app}`);
-		const AppView = ReactUtils.getInternalInstance(element).return.type;
+	patchAppView(promiseState) {
 		if (promiseState.cancelled) return;
-		Patcher.after(AppView.prototype, "render", (thisObject, _, returnValue) => {
+		Patcher.after(AppView, "type", (thisObject, _, returnValue) => {
 			returnValue.props.children = [
 				/* @__PURE__ */ React.createElement(TopBar, {
 					reopenLastChannel: this.settings.reopenLastChannel,
@@ -4055,9 +4033,22 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 			].flat();
 		});
 		const forceUpdate = () => {
-			const { app } = getModule(byKeys("app", "layers")) || {};
-			const query = document.querySelector(`.${app}`);
-			if (query) ReactUtils.getOwnerInstance(query)?.forceUpdate?.();
+			const rootElement = document.getElementById("app-mount");
+			const containerKey = Object.keys(rootElement).find((k) =>
+				k.startsWith("__reactContainer$"),
+			);
+			const target = BdApi.Utils.findInTree(
+				rootElement[containerKey],
+				(c) => c.stateNode?.isReactComponent,
+				{ walkable: ["child"] },
+			);
+			const { render } = target.stateNode;
+			if (render.toString().includes("null")) return;
+			target.stateNode.render = () => null;
+			target.stateNode.forceUpdate(() => {
+				target.stateNode.render = render;
+				target.stateNode.forceUpdate();
+			});
 		};
 		forceUpdate();
 		patches.push(() => forceUpdate());
