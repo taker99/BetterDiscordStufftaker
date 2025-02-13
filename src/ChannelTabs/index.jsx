@@ -3104,8 +3104,8 @@ const TopBar = class TopBar extends React.Component {
 		);
 	}
 
-	openFavInNewTab(fav, isGroup) {
-		if (this.state.alwaysFocusNewTabs && !isGroup) {
+	openFavInNewTab(fav) {
+		if (this.state.alwaysFocusNewTabs && !Array.isArray(fav)) {
 			//Opens and Focuses New Tab
 			const newTabIndex = this.state.tabs.length;
 			const url = fav.url + (fav.guildId ? `/${fav.guildId}` : "");
@@ -3133,20 +3133,23 @@ const TopBar = class TopBar extends React.Component {
 			);
 		} else {
 			//Opens New Tab
-			const url = fav.url + (fav.guildId ? `/${fav.guildId}` : "");
 			this.setState(
 				{
 					tabs: [
 						...this.state.tabs,
-						{
-							url,
-							selected: false,
-							name: getCurrentName(url),
-							iconUrl: getCurrentIconUrl(url),
-							currentStatus: getCurrentUserStatus(url),
-							channelId:
-								fav.channelId || SelectedChannelStore.getChannelId(fav.guildId),
-						},
+						...fav.map((fav) => {
+							const url = fav.url + (fav.guildId ? `/${fav.guildId}` : "");
+							return {
+								url,
+								selected: false,
+								name: getCurrentName(url),
+								iconUrl: getCurrentIconUrl(url),
+								currentStatus: getCurrentUserStatus(url),
+								channelId:
+									fav.channelId ||
+									SelectedChannelStore.getChannelId(fav.guildId),
+							};
+						}),
 					],
 				},
 				this.props.plugin.saveSettings,
@@ -3155,14 +3158,9 @@ const TopBar = class TopBar extends React.Component {
 	}
 
 	openFavGroupInNewTab(groupId) {
-		this.state.favs
-			.filter((item) => item)
-			.map((fav, favIndex) => {
-				var canCreate = fav.groupId === groupId;
-				if (canCreate) {
-					this.openFavInNewTab(fav, true);
-				}
-			});
+		this.openFavInNewTab(
+			this.state.favs.filter((fav) => fav && fav.groupId === groupId),
+		);
 	}
 
 	//#endregion
