@@ -4262,7 +4262,8 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	}
 	loadSettings() {
 		if (
-			Object.keys(Data.load(this.getSettingsPath(), "settings")).length === 0
+			Object.keys(Data.load(this.getSettingsPath(), "settings") ?? {})
+				.length === 0
 		) {
 			this.settings =
 				Data.load(this.getSettingsPath(true), "settings") ??
