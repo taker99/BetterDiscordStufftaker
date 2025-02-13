@@ -2470,7 +2470,6 @@ var FavFolders = (props) => {
 						unreadCount,
 						mentionCount,
 						unreadEstimated,
-						mentionCount,
 						hasUnread,
 						isTyping,
 					};
