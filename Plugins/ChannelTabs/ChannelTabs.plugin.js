@@ -4109,35 +4109,36 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	keybindHandler(e) {
 		const keybinds = [
 			{
-				altKey: false,
 				ctrlKey: true,
-				shiftKey: false,
 				keyCode: 87,
 				action: this.closeCurrentTab,
 			},
 			{
-				altKey: false,
 				ctrlKey: true,
-				shiftKey: false,
 				keyCode: 33,
 				action: this.previousTab,
 			},
 			{
-				altKey: false,
 				ctrlKey: true,
-				shiftKey: false,
 				keyCode: 34,
 				action: this.nextTab,
+			},
+			{
+				ctrlKey: true,
+				keyCode: 84,
+				action: this.openNewTab,
 			},
 		];
 		keybinds.forEach((keybind) => {
 			if (
-				e.altKey === keybind.altKey &&
-				e.ctrlKey === keybind.ctrlKey &&
-				e.shiftKey === keybind.shiftKey &&
+				e.altKey === (keybind.altKey ?? false) &&
+				e.ctrlKey === (keybind.ctrlKey ?? false) &&
+				e.shiftKey === (keybind.shiftKey ?? false) &&
 				e.keyCode === keybind.keyCode
-			)
+			) {
+				e.stopPropagation();
 				keybind.action();
+			}
 		});
 	}
 	//#endregion
@@ -4213,6 +4214,10 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	closeCurrentTab() {
 		if (TopBarRef.current)
 			TopBarRef.current.closeTab(TopBarRef.current.state.selectedTabIndex);
+	}
+	openNewTab() {
+		if (!TopBarRef.current) return;
+		TopBarRef.current.openNewTab();
 	}
 	//#endregion
 	//#region Settings
