@@ -19,7 +19,8 @@
 		"@types/betterdiscord": "github:zerthox/betterdiscord-types",
 		"@types/node": "^22.10.7",
 		"esbuild": "^0.24.2",
-		"prettier": "^3.4.2"
+		"prettier": "^3.4.2",
+		"simple-git": "^3.27.0"
 	},
 	"repository": {
 		"type": "git",

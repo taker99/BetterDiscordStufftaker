@@ -30,6 +30,7 @@
 	WScript.Quit();
 
 @else@*/
+const CHANGES = {};
 // src/ChannelTabs/index.jsx
 var pluginMeta;
 var { ContextMenu, Patcher, Webpack, React, DOM, ReactUtils, UI } = new BdApi(
@@ -3252,6 +3253,7 @@ module.exports = class ChannelTabs {
 		this.ifReopenLastChannelDefault();
 		document.addEventListener("keydown", this.keybindHandler);
 		window.onclick = (event) => this.clickHandler(event);
+		this.showChangelog();
 	}
 	stop() {
 		this.removeStyle();
@@ -3260,6 +3262,44 @@ module.exports = class ChannelTabs {
 		Patcher.unpatchAll();
 		this.promises.cancel();
 		patches.forEach((patch) => patch());
+	}
+	showChangelog() {
+		const { Data: Data2 } = new BdApi("ChannelTabs");
+		const lastVersion = Data2.load("lastVersion");
+		if (!lastVersion || !(lastVersion in CHANGES)) {
+			Data2.save("lastVersion", this.meta.version);
+			return;
+		}
+		const titles = {
+			fixed: "Fixes",
+			added: "Features",
+			progress: "Progress",
+			changed: "Changes",
+		};
+		const changes = [];
+		for (const [version, changelog] of Object.entries(CHANGES)) {
+			if (lastVersion === version) break;
+			for (const [type, messages] of Object.entries(changelog)) {
+				let change = changes.find((x) => x.type === type);
+				if (!change) {
+					change = {
+						title: titles[type],
+						type,
+						items: [],
+					};
+					changes.push(change);
+				}
+				change.items.push(...messages);
+			}
+		}
+		if (changes.length === 0) return;
+		UI.showChangelogModal({
+			title: this.meta.name,
+			subtitle: "Version " + this.meta.version,
+			blurb: `Here's what's been changed since version ${lastVersion}.`,
+			changes,
+		});
+		Data2.save("lastVersion", this.meta.version);
 	}
 	//#endregion
 	//#region Styles

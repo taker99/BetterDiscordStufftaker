@@ -3278,6 +3278,7 @@ module.exports = class ChannelTabs {
 		this.ifReopenLastChannelDefault();
 		document.addEventListener("keydown", this.keybindHandler);
 		window.onclick = (event) => this.clickHandler(event);
+		this.showChangelog();
 	}
 
 	stop() {
@@ -3287,6 +3288,50 @@ module.exports = class ChannelTabs {
 		Patcher.unpatchAll();
 		this.promises.cancel();
 		patches.forEach((patch) => patch());
+	}
+
+	showChangelog() {
+		const { Data } = new BdApi("ChannelTabs");
+		const lastVersion = Data.load("lastVersion");
+		if (!lastVersion || !(lastVersion in CHANGES)) {
+			Data.save("lastVersion", this.meta.version);
+			return;
+		}
+
+		const titles = {
+			fixed: "Fixes",
+			added: "Features",
+			progress: "Progress",
+			changed: "Changes",
+		};
+		const changes = [];
+		for (const [version, changelog] of Object.entries(CHANGES)) {
+			if (lastVersion === version) break;
+
+			for (const [type, messages] of Object.entries(changelog)) {
+				let change = changes.find((x) => x.type === type);
+				if (!change) {
+					change = {
+						title: titles[type],
+						type,
+						items: [],
+					};
+					changes.push(change);
+				}
+
+				change.items.push(...messages);
+			}
+		}
+
+		if (changes.length === 0) return;
+
+		UI.showChangelogModal({
+			title: this.meta.name,
+			subtitle: "Version " + this.meta.version,
+			blurb: `Here's what's been changed since version ${lastVersion}.`,
+			changes,
+		});
+		Data.save("lastVersion", this.meta.version);
 	}
 
 	//#endregion

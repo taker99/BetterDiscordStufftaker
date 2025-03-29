@@ -4,6 +4,9 @@ import { basename, dirname, join } from "node:path";
 import type { OnStartResult, Plugin } from "esbuild";
 import type { Meta } from "betterdiscord";
 import prettier from "prettier";
+import { simpleGit } from "simple-git";
+
+const git = simpleGit();
 
 const WScript = `/*@cc_on
 @if (@_jscript)
@@ -119,7 +122,7 @@ export default {
 
 		build.onEnd(async (result) => {
 			if (!result.metafile) return;
-			
+
 			for (const [path, output] of Object.entries(result.metafile.outputs)) {
 				// Build meta
 				const meta = await getMeta(output.entryPoint);
@@ -143,8 +146,41 @@ export default {
 
 				metaComment = `/**\n${fields.map(([k, v]) => `* @${k} ${v}`).join("\n")}\n*/\n`;
 
+				// Changelog
+				// TODO: support multiple plugins
+				const { all } = await git.log(["--stat=4096"]);
+				const versions = {};
+				let version = null;
+				const packagePath = join(dirname(output.entryPoint), "package.json");
+				for (const line of all) {
+					if ((line.diff?.files ?? []).some((f) => f.file === packagePath)) {
+						const packageText = await git
+							.show(`${line.hash}:${packagePath}`)
+							.catch(() => null);
+
+						version = JSON.parse(packageText).version;
+					}
+
+					if (!version) continue;
+
+					const prefixes = ["fixed", "added", "progress", "changed"] as const;
+					const prefix = prefixes.find((p) =>
+						line.message.startsWith(`${p}: `),
+					);
+					if (!prefix) continue;
+
+					const message = line.message.slice(prefix.length + 1).trim();
+
+					if (!(version in versions)) versions[version] = {};
+					if (!(prefix in versions[version])) versions[version][prefix] = [];
+
+					versions[version][prefix].push(message);
+				}
+
+				const changesScript = `const CHANGES = ${JSON.stringify(versions, null, 2)};\n`;
+
 				// Add WScript and meta
-				let fileContent = `${metaComment + WScript + (await readFile(path, "utf8"))}/*@end@*/`;
+				let fileContent = `${metaComment + WScript + changesScript + (await readFile(path, "utf8"))}/*@end@*/`;
 				fileContent = await prettier.format(fileContent, {
 					filepath: path,
 					...config,
