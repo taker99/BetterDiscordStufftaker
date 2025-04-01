@@ -159,6 +159,7 @@ var AppView = getModule(bySource('"Shakeable is shaken when not mounted"'), {
 	name: "AppView",
 	fatal: true,
 });
+var IconUtilities = getModule(byKeys("getChannelIconURL"));
 var Icons = getModule((m) =>
 	Object.keys(m).some(
 		(property) =>
@@ -184,8 +185,6 @@ var RightCaret =
 	Icons?.ChevronLargeRightIcon ??
 	(() => /* @__PURE__ */ React.createElement("b", null, ">"));
 var DefaultUserIconGrey = "https://cdn.discordapp.com/embed/avatars/0.png";
-var DefaultUserIconGreen = "https://cdn.discordapp.com/embed/avatars/1.png";
-var DefaultUserIconBlue = "https://cdn.discordapp.com/embed/avatars/2.png";
 var SettingsMenuIcon = /* @__PURE__ */ React.createElement(
 	"svg",
 	{
@@ -1657,30 +1656,20 @@ var getCurrentIconUrl = (pathname = location.pathname) => {
 	try {
 		const [_, gId, cId] =
 			pathname.match(
-				/^\/channels\/(\d+|@me|@favorites)\/\b(\d+|\w+(-\w+)*)\b/,
+				/^\/channels\/(\d+|@me|@favorites)(?:\/\b(\d+|\w+(-\w+)*)\b)?/,
 			) || [];
-		if (!cId) return DefaultUserIconGrey;
-		if (!ChannelStore || !ChannelStore.getChannel) return DefaultUserIconGrey;
-		const channel = ChannelStore.getChannel(cId);
-		if (!channel && !gId) return DefaultUserIconGrey;
-		if (channel?.guild_id || (gId && gId !== "@me" && gId !== "@favorites")) {
-			if (!GuildStore || !GuildStore.getGuild) return DefaultUserIconGrey;
-			const guild = GuildStore.getGuild(channel?.guild_id || gId);
-			if (!guild || !guild.getIconURL) return DefaultUserIconGrey;
-			return guild.getIconURL(40, false) || DefaultUserIconBlue;
-		} else if (channel.isDM && channel.isDM()) {
-			if (!UserStore || !UserStore.getUser) return DefaultUserIconGrey;
-			const user = UserStore.getUser(channel.getRecipientId());
-			if (!user || !user.getAvatarURL) return DefaultUserIconGrey;
-			return user.getAvatarURL(null, 40, false);
-		} else if (channel.isGroupDM && channel.isGroupDM()) {
-			if (channel.icon)
-				return `https://cdn.discordapp.com/channel-icons/${channel.id}/${channel.icon}.webp`;
-			else return DefaultUserIconGreen;
+		if (gId) {
+			if (cId && gId.startsWith("@")) {
+				const channel = ChannelStore.getChannel(cId);
+				if (channel.isDM())
+					return UserStore.getUser(channel.getRecipientId()).getAvatarURL();
+				return IconUtilities.getChannelIconURL(channel);
+			} else if (!gId.startsWith("@")) {
+				return GuildStore.getGuild(gId).getIconURL();
+			}
 		}
 	} catch (error) {
 		console.error("Error in getCurrentIconUrl:", error);
-		return DefaultUserIconGrey;
 	}
 	return DefaultUserIconGrey;
 };
