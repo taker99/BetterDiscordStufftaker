@@ -2,7 +2,7 @@
  * @name ChannelTabs
  * @author samfundev, l0c4lh057, CarJem Generations
  * @description Allows you to have multiple tabs and bookmark channels.
- * @version 2.6.17
+ * @version 2.6.18
  * @authorId 76052829285916672
  * @donate https://github.com/sponsors/samfundev
  * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/src/ChannelTabs/index.jsx
@@ -30,7 +30,12 @@
 	WScript.Quit();
 
 @else@*/
-const CHANGES = {};
+const CHANGES = {
+	"2.6.18": {
+		fixed: ["Fixed server icon not working"],
+		added: ["Open new tab using CTRL+T"],
+	},
+};
 // src/ChannelTabs/index.jsx
 var pluginMeta;
 var { ContextMenu, Patcher, Webpack, React, DOM, ReactUtils, UI } = new BdApi(
