@@ -132,11 +132,13 @@ const Slider = getModule(
 	{ searchExports: true },
 );
 const NavShortcuts = getModule(byKeys("NAVIGATE_BACK", "NAVIGATE_FORWARD"));
-const AppView = getModule(bySource('"Shakeable is shaken when not mounted"'), {
-	searchExports: true,
-	name: "AppView",
-	fatal: true,
-});
+const [TitleBar, TitleBarKey] = Webpack.getWithKey(
+	byStrings("data-windows", "title"),
+	{
+		name: "TitleBar",
+		fatal: true,
+	},
+);
 const IconUtilities = getModule(byKeys("getChannelIconURL"));
 
 const Icons = getModule((m) =>
@@ -2495,6 +2497,7 @@ function closeCurrentTab() {
 
 const TabBar = (props) => (
 	<div className="channelTabs-tabContainer" data-tab-count={props.tabs.length}>
+		{props.leading}
 		<div className="channelTabs-tabNav">
 			<div
 				className="channelTabs-tabNavLeft"
@@ -2593,6 +2596,7 @@ const TabBar = (props) => (
 			),
 		)}
 		<NewTab openNewTab={props.openNewTab} />
+		<div style={{ marginLeft: "auto" }}>{props.trailing}</div>
 	</div>
 );
 
@@ -3172,6 +3176,8 @@ const TopBar = class TopBar extends React.Component {
 				)}
 				{!this.state.showTabBar ? null : (
 					<TabBar
+						leading={this.props.leading}
+						trailing={this.props.trailing}
 						tabs={this.state.tabs}
 						showTabUnreadBadges={this.state.showTabUnreadBadges}
 						showTabMentionBadges={this.state.showTabMentionBadges}
@@ -3263,7 +3269,7 @@ module.exports = class ChannelTabs {
 		this.saveSettings = this.saveSettings.bind(this);
 		this.keybindHandler = this.keybindHandler.bind(this);
 		this.onSwitch();
-		this.patchAppView(this.promises.state);
+		this.patchTitleBar(this.promises.state);
 		this.patchContextMenus();
 		this.ifReopenLastChannelDefault();
 		document.addEventListener("keydown", this.keybindHandler);
@@ -3469,56 +3475,8 @@ module.exports = class ChannelTabs {
 //#region Tab Base/Container
 */
 
-.channelTabs-tabNav {
-	display:none;
-}
-
-/*
-//#macos
-*/
-
-.platform-osx .typeMacOS-3V4xXE {
-	position: relative;
-	width: 100%;
-	-webkit-app-region: drag;
-}
-
-.platform-osx .typeMacOS-3V4xXE>*,
-.platform-osx .menu-1QACrS {
-	-webkit-app-region: no-drag;
-}
-
-.platform-osx .wrapper-1_HaEi {
-	margin-top: 0;
-	padding-top: 0;
-}
-
-html:not(.platform-win) .sidebar-1tnWFu {
-	border-radius: 8px 0 0;
-	overflow: hidden;
-}
-
-/* Apply draggable to both containers only on macOS using .platform-osx */
-.platform-osx .channelTabs-tabContainer, 
-.platform-osx .channelTabs-favContainer {
-		-webkit-app-region: drag;
-}
-
-/* Exclude all interactive elements from being draggable in both containers only on macOS using .platform-osx */
-.platform-osx .channelTabs-tabContainer *, 
-.platform-osx .channelTabs-favContainer * {
-		-webkit-app-region: no-drag;
-}
-
-/* Apply padding-left to the first element following #channelTabs-settingsMenu if it exists, only on macOS using .platform-osx */
-.platform-osx #channelTabs-settingsMenu + .channelTabs-tabContainer,
-.platform-osx #channelTabs-settingsMenu + .channelTabs-favContainer {
-		padding-left: 72px;
-}
-
-/* Default padding for the first child of #channelTabs-container if #channelTabs-settingsMenu is not present, only on macOS using .platform-osx */
-.platform-osx #channelTabs-container > :first-child:not(#channelTabs-settingsMenu) {
-		padding-left: 72px;
+:root {
+	--custom-app-top-bar-height: auto;
 }
 
 /*
@@ -3529,12 +3487,17 @@ html:not(.platform-win) .sidebar-1tnWFu {
 	z-index: 1000;
 	padding: 4px 8px 1px 8px;
 	background: none;
+	flex: 1;
 }
 
 .channelTabs-tabContainer {
 	display: flex;
 	align-items: center;
 	flex-wrap:wrap;
+}
+
+.channelTabs-tabContainer > * {
+    -webkit-app-region: no-drag;
 }
 
 #channelTabs-container>:not(#channelTabs-settingsMenu)+div {
@@ -3600,6 +3563,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	width: 20px;
 	height: 20px;
 	z-index: 1000;
+	-webkit-app-region: no-drag;
 }
 
 #channelTabs-settingsMenu:hover {
@@ -3717,6 +3681,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	border-radius: 4px;
 	cursor: pointer;
 	color: var(--interactive-normal);
+	margin-right: 64px;
 }
 
 .channelTabs-newTab:hover {
@@ -3874,6 +3839,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	display: flex;
 	align-items: center;
 	flex-wrap:wrap;
+    -webkit-app-region: no-drag;
 }
 
 .channelTabs-fav {
@@ -4068,11 +4034,14 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 
 	//#region Patches
 
-	patchAppView(promiseState) {
+	patchTitleBar(promiseState) {
 		if (promiseState.cancelled) return;
-		Patcher.after(AppView, "type", (thisObject, _, returnValue) => {
-			returnValue.props.children = [
+		Patcher.after(TitleBar, TitleBarKey, (thisObject, _, returnValue) => {
+			returnValue.props.style = { paddingLeft: 0 };
+			returnValue.props.children = (
 				<TopBar
+					leading={returnValue.props.children[1]}
+					trailing={returnValue.props.children[2]}
 					reopenLastChannel={this.settings.reopenLastChannel}
 					showTabBar={this.settings.showTabBar}
 					showFavBar={this.settings.showFavBar}
@@ -4105,9 +4074,8 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 					favGroups={this.settings.favGroups}
 					ref={TopBarRef}
 					plugin={this}
-				/>,
-				returnValue.props.children,
-			].flat();
+				/>
+			);
 		});
 
 		const forceUpdate = () => {

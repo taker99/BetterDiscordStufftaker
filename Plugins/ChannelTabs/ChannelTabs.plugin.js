@@ -159,11 +159,13 @@ var Slider = getModule(
 	{ searchExports: true },
 );
 var NavShortcuts = getModule(byKeys("NAVIGATE_BACK", "NAVIGATE_FORWARD"));
-var AppView = getModule(bySource('"Shakeable is shaken when not mounted"'), {
-	searchExports: true,
-	name: "AppView",
-	fatal: true,
-});
+var [TitleBar, TitleBarKey] = Webpack.getWithKey(
+	byStrings("data-windows", "title"),
+	{
+		name: "TitleBar",
+		fatal: true,
+	},
+);
 var IconUtilities = getModule(byKeys("getChannelIconURL"));
 var Icons = getModule((m) =>
 	Object.keys(m).some(
@@ -2516,6 +2518,7 @@ var TabBar = (props) =>
 			className: "channelTabs-tabContainer",
 			"data-tab-count": props.tabs.length,
 		},
+		props.leading,
 		/* @__PURE__ */ React.createElement(
 			"div",
 			{ className: "channelTabs-tabNav" },
@@ -2622,6 +2625,11 @@ var TabBar = (props) =>
 		/* @__PURE__ */ React.createElement(NewTab, {
 			openNewTab: props.openNewTab,
 		}),
+		/* @__PURE__ */ React.createElement(
+			"div",
+			{ style: { marginLeft: "auto" } },
+			props.trailing,
+		),
 	);
 var FavBar = (props) =>
 	/* @__PURE__ */ React.createElement(
@@ -3164,6 +3172,8 @@ var TopBar = class TopBar2 extends React.Component {
 			!this.state.showTabBar
 				? null
 				: /* @__PURE__ */ React.createElement(TabBar, {
+						leading: this.props.leading,
+						trailing: this.props.trailing,
 						tabs: this.state.tabs,
 						showTabUnreadBadges: this.state.showTabUnreadBadges,
 						showTabMentionBadges: this.state.showTabMentionBadges,
@@ -3242,7 +3252,7 @@ module.exports = class ChannelTabs {
 		this.saveSettings = this.saveSettings.bind(this);
 		this.keybindHandler = this.keybindHandler.bind(this);
 		this.onSwitch();
-		this.patchAppView(this.promises.state);
+		this.patchTitleBar(this.promises.state);
 		this.patchContextMenus();
 		this.ifReopenLastChannelDefault();
 		document.addEventListener("keydown", this.keybindHandler);
@@ -3432,56 +3442,8 @@ module.exports = class ChannelTabs {
 //#region Tab Base/Container
 */
 
-.channelTabs-tabNav {
-	display:none;
-}
-
-/*
-//#macos
-*/
-
-.platform-osx .typeMacOS-3V4xXE {
-	position: relative;
-	width: 100%;
-	-webkit-app-region: drag;
-}
-
-.platform-osx .typeMacOS-3V4xXE>*,
-.platform-osx .menu-1QACrS {
-	-webkit-app-region: no-drag;
-}
-
-.platform-osx .wrapper-1_HaEi {
-	margin-top: 0;
-	padding-top: 0;
-}
-
-html:not(.platform-win) .sidebar-1tnWFu {
-	border-radius: 8px 0 0;
-	overflow: hidden;
-}
-
-/* Apply draggable to both containers only on macOS using .platform-osx */
-.platform-osx .channelTabs-tabContainer, 
-.platform-osx .channelTabs-favContainer {
-		-webkit-app-region: drag;
-}
-
-/* Exclude all interactive elements from being draggable in both containers only on macOS using .platform-osx */
-.platform-osx .channelTabs-tabContainer *, 
-.platform-osx .channelTabs-favContainer * {
-		-webkit-app-region: no-drag;
-}
-
-/* Apply padding-left to the first element following #channelTabs-settingsMenu if it exists, only on macOS using .platform-osx */
-.platform-osx #channelTabs-settingsMenu + .channelTabs-tabContainer,
-.platform-osx #channelTabs-settingsMenu + .channelTabs-favContainer {
-		padding-left: 72px;
-}
-
-/* Default padding for the first child of #channelTabs-container if #channelTabs-settingsMenu is not present, only on macOS using .platform-osx */
-.platform-osx #channelTabs-container > :first-child:not(#channelTabs-settingsMenu) {
-		padding-left: 72px;
+:root {
+	--custom-app-top-bar-height: auto;
 }
 
 /*
@@ -3492,12 +3454,17 @@ html:not(.platform-win) .sidebar-1tnWFu {
 	z-index: 1000;
 	padding: 4px 8px 1px 8px;
 	background: none;
+	flex: 1;
 }
 
 .channelTabs-tabContainer {
 	display: flex;
 	align-items: center;
 	flex-wrap:wrap;
+}
+
+.channelTabs-tabContainer > * {
+    -webkit-app-region: no-drag;
 }
 
 #channelTabs-container>:not(#channelTabs-settingsMenu)+div {
@@ -3563,6 +3530,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	width: 20px;
 	height: 20px;
 	z-index: 1000;
+	-webkit-app-region: no-drag;
 }
 
 #channelTabs-settingsMenu:hover {
@@ -3680,6 +3648,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	border-radius: 4px;
 	cursor: pointer;
 	color: var(--interactive-normal);
+	margin-right: 64px;
 }
 
 .channelTabs-newTab:hover {
@@ -3837,6 +3806,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	display: flex;
 	align-items: center;
 	flex-wrap:wrap;
+    -webkit-app-region: no-drag;
 }
 
 .channelTabs-fav {
@@ -4022,46 +3992,46 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	}
 	//#endregion
 	//#region Patches
-	patchAppView(promiseState) {
+	patchTitleBar(promiseState) {
 		if (promiseState.cancelled) return;
-		Patcher.after(AppView, "type", (thisObject, _, returnValue) => {
-			returnValue.props.children = [
-				/* @__PURE__ */ React.createElement(TopBar, {
-					reopenLastChannel: this.settings.reopenLastChannel,
-					showTabBar: this.settings.showTabBar,
-					showFavBar: this.settings.showFavBar,
-					showFavUnreadBadges: this.settings.showFavUnreadBadges,
-					showFavMentionBadges: this.settings.showFavMentionBadges,
-					showFavTypingBadge: this.settings.showFavTypingBadge,
-					showEmptyFavBadges: this.settings.showEmptyFavBadges,
-					showTabUnreadBadges: this.settings.showTabUnreadBadges,
-					showTabMentionBadges: this.settings.showTabMentionBadges,
-					showTabTypingBadge: this.settings.showTabTypingBadge,
-					showEmptyTabBadges: this.settings.showEmptyTabBadges,
-					showActiveTabUnreadBadges: this.settings.showActiveTabUnreadBadges,
-					showActiveTabMentionBadges: this.settings.showActiveTabMentionBadges,
-					showActiveTabTypingBadge: this.settings.showActiveTabTypingBadge,
-					showEmptyActiveTabBadges: this.settings.showEmptyActiveTabBadges,
-					showFavGroupUnreadBadges: this.settings.showFavGroupUnreadBadges,
-					showFavGroupMentionBadges: this.settings.showFavGroupMentionBadges,
-					showFavGroupTypingBadge: this.settings.showFavGroupTypingBadge,
-					showEmptyFavGroupBadges: this.settings.showEmptyFavGroupBadges,
-					compactStyle: this.settings.compactStyle,
-					privacyMode: this.settings.privacyMode,
-					radialStatusMode: this.settings.radialStatusMode,
-					tabWidthMin: this.settings.tabWidthMin,
-					showQuickSettings: this.settings.showQuickSettings,
-					showNavButtons: this.settings.showNavButtons,
-					alwaysFocusNewTabs: this.settings.alwaysFocusNewTabs,
-					useStandardNav: this.settings.useStandardNav,
-					tabs: this.settings.tabs,
-					favs: this.settings.favs,
-					favGroups: this.settings.favGroups,
-					ref: TopBarRef,
-					plugin: this,
-				}),
-				returnValue.props.children,
-			].flat();
+		Patcher.after(TitleBar, TitleBarKey, (thisObject, _, returnValue) => {
+			returnValue.props.style = { paddingLeft: 0 };
+			returnValue.props.children = /* @__PURE__ */ React.createElement(TopBar, {
+				leading: returnValue.props.children[1],
+				trailing: returnValue.props.children[2],
+				reopenLastChannel: this.settings.reopenLastChannel,
+				showTabBar: this.settings.showTabBar,
+				showFavBar: this.settings.showFavBar,
+				showFavUnreadBadges: this.settings.showFavUnreadBadges,
+				showFavMentionBadges: this.settings.showFavMentionBadges,
+				showFavTypingBadge: this.settings.showFavTypingBadge,
+				showEmptyFavBadges: this.settings.showEmptyFavBadges,
+				showTabUnreadBadges: this.settings.showTabUnreadBadges,
+				showTabMentionBadges: this.settings.showTabMentionBadges,
+				showTabTypingBadge: this.settings.showTabTypingBadge,
+				showEmptyTabBadges: this.settings.showEmptyTabBadges,
+				showActiveTabUnreadBadges: this.settings.showActiveTabUnreadBadges,
+				showActiveTabMentionBadges: this.settings.showActiveTabMentionBadges,
+				showActiveTabTypingBadge: this.settings.showActiveTabTypingBadge,
+				showEmptyActiveTabBadges: this.settings.showEmptyActiveTabBadges,
+				showFavGroupUnreadBadges: this.settings.showFavGroupUnreadBadges,
+				showFavGroupMentionBadges: this.settings.showFavGroupMentionBadges,
+				showFavGroupTypingBadge: this.settings.showFavGroupTypingBadge,
+				showEmptyFavGroupBadges: this.settings.showEmptyFavGroupBadges,
+				compactStyle: this.settings.compactStyle,
+				privacyMode: this.settings.privacyMode,
+				radialStatusMode: this.settings.radialStatusMode,
+				tabWidthMin: this.settings.tabWidthMin,
+				showQuickSettings: this.settings.showQuickSettings,
+				showNavButtons: this.settings.showNavButtons,
+				alwaysFocusNewTabs: this.settings.alwaysFocusNewTabs,
+				useStandardNav: this.settings.useStandardNav,
+				tabs: this.settings.tabs,
+				favs: this.settings.favs,
+				favGroups: this.settings.favGroups,
+				ref: TopBarRef,
+				plugin: this,
+			});
 		});
 		const forceUpdate = () => {
 			const rootElement = document.getElementById("app-mount");
