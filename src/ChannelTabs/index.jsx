@@ -3099,56 +3099,32 @@ const TopBar = class TopBar extends React.Component {
 	}
 
 	openFavInNewTab(fav) {
-		if (this.state.alwaysFocusNewTabs && !Array.isArray(fav)) {
-			//Opens and Focuses New Tab
-			const newTabIndex = this.state.tabs.length;
-			const url = fav.url + (fav.guildId ? `/${fav.guildId}` : "");
-			this.setState(
-				{
-					tabs: [
-						...this.state.tabs.map((tab) =>
-							Object.assign(tab, { selected: false }),
-						),
-						{
+		if (!Array.isArray(fav)) fav = [fav];
+		//Opens and Focuses New Tab
+		const newTabIndex = this.state.tabs.length + fav.length - 1;
+		this.setState(
+			{
+				tabs: [
+					...this.state.tabs,
+					...fav.map((fav) => {
+						const url = fav.url + (fav.guildId ? `/${fav.guildId}` : "");
+						return {
 							url,
+							selected: false,
 							name: getCurrentName(url),
 							iconUrl: getCurrentIconUrl(url),
 							currentStatus: getCurrentUserStatus(url),
 							channelId:
 								fav.channelId || SelectedChannelStore.getChannelId(fav.guildId),
-						},
-					],
-					selectedTabIndex: newTabIndex,
-				},
-				() => {
-					this.props.plugin.saveSettings();
-					this.switchToTab(newTabIndex);
-				},
-			);
-		} else {
-			//Opens New Tab
-			this.setState(
-				{
-					tabs: [
-						...this.state.tabs,
-						...fav.map((fav) => {
-							const url = fav.url + (fav.guildId ? `/${fav.guildId}` : "");
-							return {
-								url,
-								selected: false,
-								name: getCurrentName(url),
-								iconUrl: getCurrentIconUrl(url),
-								currentStatus: getCurrentUserStatus(url),
-								channelId:
-									fav.channelId ||
-									SelectedChannelStore.getChannelId(fav.guildId),
-							};
-						}),
-					],
-				},
-				this.props.plugin.saveSettings,
-			);
-		}
+						};
+					}),
+				],
+			},
+			() => {
+				this.props.plugin.saveSettings();
+				if (this.state.alwaysFocusNewTabs) this.switchToTab(newTabIndex);
+			},
+		);
 	}
 
 	openFavGroupInNewTab(groupId) {

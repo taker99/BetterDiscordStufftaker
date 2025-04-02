@@ -3097,54 +3097,32 @@ var TopBar = class TopBar2 extends React.Component {
 		);
 	}
 	openFavInNewTab(fav) {
-		if (this.state.alwaysFocusNewTabs && !Array.isArray(fav)) {
-			const newTabIndex = this.state.tabs.length;
-			const url = fav.url + (fav.guildId ? `/${fav.guildId}` : "");
-			this.setState(
-				{
-					tabs: [
-						...this.state.tabs.map((tab) =>
-							Object.assign(tab, { selected: false }),
-						),
-						{
+		if (!Array.isArray(fav)) fav = [fav];
+		const newTabIndex = this.state.tabs.length + fav.length - 1;
+		this.setState(
+			{
+				tabs: [
+					...this.state.tabs,
+					...fav.map((fav2) => {
+						const url = fav2.url + (fav2.guildId ? `/${fav2.guildId}` : "");
+						return {
 							url,
+							selected: false,
 							name: getCurrentName(url),
 							iconUrl: getCurrentIconUrl(url),
 							currentStatus: getCurrentUserStatus(url),
 							channelId:
-								fav.channelId || SelectedChannelStore.getChannelId(fav.guildId),
-						},
-					],
-					selectedTabIndex: newTabIndex,
-				},
-				() => {
-					this.props.plugin.saveSettings();
-					this.switchToTab(newTabIndex);
-				},
-			);
-		} else {
-			this.setState(
-				{
-					tabs: [
-						...this.state.tabs,
-						...fav.map((fav2) => {
-							const url = fav2.url + (fav2.guildId ? `/${fav2.guildId}` : "");
-							return {
-								url,
-								selected: false,
-								name: getCurrentName(url),
-								iconUrl: getCurrentIconUrl(url),
-								currentStatus: getCurrentUserStatus(url),
-								channelId:
-									fav2.channelId ||
-									SelectedChannelStore.getChannelId(fav2.guildId),
-							};
-						}),
-					],
-				},
-				this.props.plugin.saveSettings,
-			);
-		}
+								fav2.channelId ||
+								SelectedChannelStore.getChannelId(fav2.guildId),
+						};
+					}),
+				],
+			},
+			() => {
+				this.props.plugin.saveSettings();
+				if (this.state.alwaysFocusNewTabs) this.switchToTab(newTabIndex);
+			},
+		);
 	}
 	openFavGroupInNewTab(groupId) {
 		this.openFavInNewTab(
