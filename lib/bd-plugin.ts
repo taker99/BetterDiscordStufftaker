@@ -163,7 +163,7 @@ export default {
 
 					if (!version) continue;
 
-					const prefixes = ["fixed", "added", "progress", "changed"] as const;
+					const prefixes = ["fixed", "added", "progress", "improved"] as const;
 					const prefix = prefixes.find((p) =>
 						line.message.startsWith(`${p}: `),
 					);

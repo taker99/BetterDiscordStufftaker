@@ -3256,7 +3256,7 @@ module.exports = class ChannelTabs {
 			fixed: "Fixes",
 			added: "Features",
 			progress: "Progress",
-			changed: "Changes",
+			improved: "Improvements",
 		};
 		const changes = [];
 		for (const [version, changelog] of Object.entries(CHANGES)) {
