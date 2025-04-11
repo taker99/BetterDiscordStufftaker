@@ -3473,6 +3473,10 @@ module.exports = class ChannelTabs {
 //#region Tab Base/Container
 */
 
+.channelTabs-tabNav {
+	display:none;
+}
+
 :root {
 	--custom-app-top-bar-height: auto;
 }
