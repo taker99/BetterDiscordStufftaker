@@ -4461,7 +4461,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 							name: "Show Tab Bar",
 							note: "Allows you to have multiple tabs like in a web browser",
 							value: this.settings.showTabBar,
-							onChanged: (checked) => {
+							onChange: (checked) => {
 								this.settings.showTabBar = checked;
 								if (TopBarRef.current)
 									TopBarRef.current.setState({
@@ -4476,7 +4476,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 							name: "Show Fav Bar",
 							note: "Allows you to add favorites by right clicking a tab or the fav bar",
 							value: this.settings.showFavBar,
-							onChanged: (checked) => {
+							onChange: (checked) => {
 								this.settings.showFavBar = checked;
 								if (TopBarRef.current)
 									TopBarRef.current.setState({
@@ -4491,7 +4491,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 							name: "Show Quick Settings",
 							note: "Allows you to quickly change major settings from a context menu",
 							value: this.settings.showQuickSettings,
-							onChanged: (checked) => {
+							onChange: (checked) => {
 								this.settings.showQuickSettings = checked;
 								if (TopBarRef.current)
 									TopBarRef.current.setState({
@@ -4506,7 +4506,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 							name: "Show Navigation Buttons",
 							note: "Click to go the left or right tab, this behavior can be changed in Behavior settings",
 							value: this.settings.showNavButtons,
-							onChanged: (checked) => {
+							onChange: (checked) => {
 								this.settings.showNavButtons = checked;
 								if (TopBarRef.current)
 									TopBarRef.current.setState({
@@ -4523,7 +4523,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 							name: "Use Compact Look",
 							note: "",
 							value: this.settings.compactStyle,
-							onChanged: (checked) => {
+							onChange: (checked) => {
 								this.settings.compactStyle = checked;
 								if (TopBarRef.current)
 									TopBarRef.current.setState({
@@ -4540,7 +4540,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 							name: "Enable Privacy Mode",
 							note: "Obfusicates all the Sensitive Text in ChannelTabs",
 							value: this.settings.privacyMode,
-							onChanged: (checked) => {
+							onChange: (checked) => {
 								this.settings.privacyMode = checked;
 								if (TopBarRef.current)
 									TopBarRef.current.setState({
@@ -4557,7 +4557,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 							name: "Use Radial Status Indicators",
 							note: "Changes the status indicator into a circular border",
 							value: this.settings.radialStatusMode,
-							onChanged: (checked) => {
+							onChange: (checked) => {
 								this.settings.radialStatusMode = checked;
 								if (TopBarRef.current)
 									TopBarRef.current.setState({
@@ -4576,7 +4576,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 							min: 58,
 							max: 220,
 							value: this.settings.tabWidthMin,
-							onChanged: (value) => (
+							onChange: (value) => (
 								(this.settings.tabWidthMin = Math.round(value)),
 								this.saveSettings(),
 								document.documentElement.style.setProperty(
