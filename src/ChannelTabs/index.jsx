@@ -2663,7 +2663,7 @@ const TabBar = (props) => (
 			)}
 		</HorizontalScroll>
 		<NewTab openNewTab={props.openNewTab} />
-		<div style={{ marginLeft: "auto" }}>{props.trailing}</div>
+		{props.trailing}
 	</div>
 );
 
@@ -3205,9 +3205,9 @@ const TopBar = class TopBar extends React.Component {
 	//#region Other Functions
 
 	render() {
-		return (
-			<div id="channelTabs-container">
-				{!this.state.showQuickSettings ? null : (
+		const trailing = (
+			<div className="channelTabs-trailing">
+				{this.state.showQuickSettings && (
 					<div
 						id="channelTabs-settingsMenu"
 						onClick={(e) => {
@@ -3217,10 +3217,16 @@ const TopBar = class TopBar extends React.Component {
 						{SettingsMenuIcon}
 					</div>
 				)}
+				{this.props.trailing}
+			</div>
+		);
+
+		return (
+			<div id="channelTabs-container">
 				{!this.state.showTabBar ? null : (
 					<TabBar
 						leading={this.props.leading}
-						trailing={this.props.trailing}
+						trailing={trailing}
 						tabs={this.state.tabs}
 						showTabUnreadBadges={this.state.showTabUnreadBadges}
 						showTabMentionBadges={this.state.showTabMentionBadges}
@@ -3542,6 +3548,13 @@ div:has(> div > #channelTabs-container) {
 	align-items: center;
 }
 
+.channelTabs-trailing {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-left: auto;
+}
+
 .channelTabs-tabContainer > * {
     -webkit-app-region: no-drag;
 }
@@ -3604,12 +3617,14 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 }
 
 #channelTabs-settingsMenu {
-	position: absolute;
-	right:0;
-	width: 20px;
-	height: 20px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 32px;
+	height: 32px;
 	z-index: 1000;
 	-webkit-app-region: no-drag;
+	cursor: pointer;
 }
 
 #channelTabs-settingsMenu:hover {
@@ -3617,12 +3632,8 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 }
 
 .channelTabs-settingsIcon {
-	max-width: 40px;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	max-height: 40px;
+	width: 20px;
+	height: 20px;
 }
 
 /*

@@ -2678,11 +2678,7 @@ var TabBar = (props) =>
 		/* @__PURE__ */ React.createElement(NewTab, {
 			openNewTab: props.openNewTab,
 		}),
-		/* @__PURE__ */ React.createElement(
-			"div",
-			{ style: { marginLeft: "auto" } },
-			props.trailing,
-		),
+		props.trailing,
 	);
 var FavBar = (props) =>
 	/* @__PURE__ */ React.createElement(
@@ -3185,26 +3181,30 @@ var TopBar = class TopBar2 extends React.Component {
 	//#endregion
 	//#region Other Functions
 	render() {
+		const trailing = /* @__PURE__ */ React.createElement(
+			"div",
+			{ className: "channelTabs-trailing" },
+			this.state.showQuickSettings &&
+				/* @__PURE__ */ React.createElement(
+					"div",
+					{
+						id: "channelTabs-settingsMenu",
+						onClick: (e) => {
+							CreateSettingsContextMenu(this, e);
+						},
+					},
+					SettingsMenuIcon,
+				),
+			this.props.trailing,
+		);
 		return /* @__PURE__ */ React.createElement(
 			"div",
 			{ id: "channelTabs-container" },
-			!this.state.showQuickSettings
-				? null
-				: /* @__PURE__ */ React.createElement(
-						"div",
-						{
-							id: "channelTabs-settingsMenu",
-							onClick: (e) => {
-								CreateSettingsContextMenu(this, e);
-							},
-						},
-						SettingsMenuIcon,
-					),
 			!this.state.showTabBar
 				? null
 				: /* @__PURE__ */ React.createElement(TabBar, {
 						leading: this.props.leading,
-						trailing: this.props.trailing,
+						trailing,
 						tabs: this.state.tabs,
 						showTabUnreadBadges: this.state.showTabUnreadBadges,
 						showTabMentionBadges: this.state.showTabMentionBadges,
@@ -3497,6 +3497,13 @@ div:has(> div > #channelTabs-container) {
 	align-items: center;
 }
 
+.channelTabs-trailing {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-left: auto;
+}
+
 .channelTabs-tabContainer > * {
     -webkit-app-region: no-drag;
 }
@@ -3559,12 +3566,14 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 }
 
 #channelTabs-settingsMenu {
-	position: absolute;
-	right:0;
-	width: 20px;
-	height: 20px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 32px;
+	height: 32px;
 	z-index: 1000;
 	-webkit-app-region: no-drag;
+	cursor: pointer;
 }
 
 #channelTabs-settingsMenu:hover {
@@ -3572,12 +3581,8 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 }
 
 .channelTabs-settingsIcon {
-	max-width: 40px;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	max-height: 40px;
+	width: 20px;
+	height: 20px;
 }
 
 /*
