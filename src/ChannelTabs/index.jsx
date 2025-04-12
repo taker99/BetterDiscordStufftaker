@@ -3522,8 +3522,8 @@ module.exports = class ChannelTabs {
 	display:none;
 }
 
-:root {
-	--custom-app-top-bar-height: auto;
+div:has(> div > #channelTabs-container) {
+	grid-template-rows: [top] auto [titleBarEnd] min-content [noticeEnd] 1fr [end];
 }
 
 /*
@@ -3532,7 +3532,6 @@ module.exports = class ChannelTabs {
 
 #channelTabs-container {
 	z-index: 1000;
-	padding: 4px 8px 1px 8px;
 	background: none;
 	flex: 1;
 	max-width: 100vw;
@@ -4085,8 +4084,9 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 		if (promiseState.cancelled) return;
 		Patcher.after(TitleBar, TitleBarKey, (thisObject, _, returnValue) => {
 			// checks if it's VC popup
-			var is_popup_vc = document.querySelectorAll("[class*=pictureInPicture]").length > 0;
-			
+			var is_popup_vc =
+				document.querySelectorAll("[class*=pictureInPicture]").length > 0;
+
 			// if not VC popup then apply the channel tabs patch
 			if (is_popup_vc) return;
 

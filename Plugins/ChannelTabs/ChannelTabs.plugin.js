@@ -3477,8 +3477,8 @@ module.exports = class ChannelTabs {
 	display:none;
 }
 
-:root {
-	--custom-app-top-bar-height: auto;
+div:has(> div > #channelTabs-container) {
+	grid-template-rows: [top] auto [titleBarEnd] min-content [noticeEnd] 1fr [end];
 }
 
 /*
@@ -3487,7 +3487,6 @@ module.exports = class ChannelTabs {
 
 #channelTabs-container {
 	z-index: 1000;
-	padding: 4px 8px 1px 8px;
 	background: none;
 	flex: 1;
 	max-width: 100vw;
@@ -4030,6 +4029,9 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	patchTitleBar(promiseState) {
 		if (promiseState.cancelled) return;
 		Patcher.after(TitleBar, TitleBarKey, (thisObject, _, returnValue) => {
+			var is_popup_vc =
+				document.querySelectorAll("[class*=pictureInPicture]").length > 0;
+			if (is_popup_vc) return;
 			returnValue.props.style = { paddingLeft: 0 };
 			returnValue.props.children = /* @__PURE__ */ React.createElement(TopBar, {
 				leading: returnValue.props.children[1],
