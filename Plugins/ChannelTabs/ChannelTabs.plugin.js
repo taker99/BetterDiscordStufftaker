@@ -2,7 +2,7 @@
  * @name ChannelTabs
  * @author samfundev, l0c4lh057, CarJem Generations
  * @description Allows you to have multiple tabs and bookmark channels.
- * @version 2.7.0
+ * @version 2.7.1
  * @authorId 76052829285916672
  * @donate https://github.com/sponsors/samfundev
  * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/src/ChannelTabs/index.jsx
@@ -31,6 +31,20 @@
 
 @else@*/
 const CHANGES = {
+	"2.7.1": {
+		improved: [
+			"Add a button to create groups and the favorites bar can drag the app",
+			"Ensure the window controls are visible even if you hide the tab bar",
+			"Moved the menu button into the title bar",
+			"Allow tabs to be scrolled through instead of them wrapping",
+		],
+		fixed: [
+			"Fixed window buttons being too small",
+			"Fixed showNavButtons not working properly",
+			"Fixed some settings not working in the settings panel",
+			"Fixed broken voice call popout window",
+		],
+	},
 	"2.7.0": {
 		fixed: ['Fixed "Open in New Tab" not working with certain settings'],
 		improved: ["Combined the tabs with Discord's new titlebar"],
