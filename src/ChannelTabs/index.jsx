@@ -2678,12 +2678,14 @@ const FavBar = (props) => (
 			CreateFavBarContextMenu(props, e);
 		}}
 	>
+		{props.leading}
 		<FavFolders {...props} />
 		{props.favs.length > 0 ? (
 			<FavItems group={null} {...props} />
 		) : (
 			<NoFavItemsPlaceholder />
 		)}
+		{props.trailing}
 	</div>
 );
 
@@ -3251,6 +3253,8 @@ const TopBar = class TopBar extends React.Component {
 				)}
 				{!this.state.showFavBar ? null : (
 					<FavBar
+						leading={this.state.showTabBar ? null : this.props.leading}
+						trailing={this.state.showTabBar ? null : trailing}
 						favs={this.state.favs}
 						favGroups={this.state.favGroups}
 						showFavUnreadBadges={this.state.showFavUnreadBadges}

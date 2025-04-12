@@ -2692,10 +2692,12 @@ var FavBar = (props) =>
 				CreateFavBarContextMenu(props, e);
 			},
 		},
+		props.leading,
 		/* @__PURE__ */ React.createElement(FavFolders, { ...props }),
 		props.favs.length > 0
 			? /* @__PURE__ */ React.createElement(FavItems, { group: null, ...props })
 			: /* @__PURE__ */ React.createElement(NoFavItemsPlaceholder, null),
+		props.trailing,
 	);
 var TopBar = class TopBar2 extends React.Component {
 	//#region Constructor
@@ -3229,6 +3231,8 @@ var TopBar = class TopBar2 extends React.Component {
 			!this.state.showFavBar
 				? null
 				: /* @__PURE__ */ React.createElement(FavBar, {
+						leading: this.state.showTabBar ? null : this.props.leading,
+						trailing: this.state.showTabBar ? null : trailing,
 						favs: this.state.favs,
 						favGroups: this.state.favGroups,
 						showFavUnreadBadges: this.state.showFavUnreadBadges,
