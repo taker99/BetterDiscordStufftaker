@@ -2697,6 +2697,11 @@ var FavBar = (props) =>
 		props.favs.length > 0
 			? /* @__PURE__ */ React.createElement(FavItems, { group: null, ...props })
 			: /* @__PURE__ */ React.createElement(NoFavItemsPlaceholder, null),
+		/* @__PURE__ */ React.createElement(
+			"div",
+			{ className: "channelTabs-newTab", onClick: () => props.addFavGroup() },
+			/* @__PURE__ */ React.createElement(PlusAlt, null),
+		),
 		props.trailing,
 	);
 var TopBar = class TopBar2 extends React.Component {
@@ -3692,6 +3697,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	cursor: pointer;
 	color: var(--interactive-normal);
 	margin-right: 64px;
+    -webkit-app-region: no-drag;
 }
 
 .channelTabs-newTab:hover {
@@ -3849,7 +3855,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	display: flex;
 	align-items: center;
 	flex-wrap:wrap;
-    -webkit-app-region: no-drag;
+    -webkit-app-region: drag;
 }
 
 .channelTabs-fav {
@@ -3864,6 +3870,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	margin-bottom: 3px;
 	padding-left: 6px;
 	padding-right: 6px;
+    -webkit-app-region: no-drag;
 }
 
 .channelTabs-fav:hover {
