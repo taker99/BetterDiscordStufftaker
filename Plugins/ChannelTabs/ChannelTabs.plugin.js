@@ -2,7 +2,7 @@
  * @name ChannelTabs
  * @author samfundev, l0c4lh057, CarJem Generations
  * @description Allows you to have multiple tabs and bookmark channels.
- * @version 2.7.1
+ * @version 2.7.2
  * @authorId 76052829285916672
  * @donate https://github.com/sponsors/samfundev
  * @source https://github.com/samfundev/BetterDiscordStuff/blob/master/src/ChannelTabs/index.jsx
@@ -31,6 +31,12 @@
 
 @else@*/
 const CHANGES = {
+	"2.7.2": {
+		fixed: [
+			"Fixed incorrectly hiding the top bar in certain cases",
+			"Fixed favorite groups not being clickable",
+		],
+	},
 	"2.7.1": {
 		improved: [
 			"Add a button to create groups and the favorites bar can drag the app",
