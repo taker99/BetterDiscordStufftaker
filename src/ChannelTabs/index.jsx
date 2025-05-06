@@ -3562,7 +3562,7 @@ div:has(> div > #channelTabs-container) {
 	margin-left: auto;
 }
 
-.channelTabs-tabContainer > * {
+.channelTabs-tabContainer > *, .channelTabs-favContainer > * {
     -webkit-app-region: no-drag;
 }
 
@@ -3630,7 +3630,6 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	width: 32px;
 	height: 32px;
 	z-index: 1000;
-	-webkit-app-region: no-drag;
 	cursor: pointer;
 }
 
@@ -3746,7 +3745,6 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	cursor: pointer;
 	color: var(--interactive-normal);
 	margin-right: 64px;
-    -webkit-app-region: no-drag;
 }
 
 .channelTabs-newTab:hover {
@@ -3919,7 +3917,6 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	margin-bottom: 3px;
 	padding-left: 6px;
 	padding-right: 6px;
-    -webkit-app-region: no-drag;
 }
 
 .channelTabs-fav:hover {
