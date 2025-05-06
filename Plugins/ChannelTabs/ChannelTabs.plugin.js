@@ -3221,6 +3221,13 @@ var TopBar = class TopBar2 extends React.Component {
 		return /* @__PURE__ */ React.createElement(
 			"div",
 			{ id: "channelTabs-container" },
+			/* @__PURE__ */ React.createElement(
+				"style",
+				null,
+				`[data-popout-root="true"] #channelTabs-container {
+						display: none;
+					}`,
+			),
 			!this.state.showTabBar
 				? null
 				: /* @__PURE__ */ React.createElement(TabBar, {
@@ -4056,9 +4063,6 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	patchTitleBar(promiseState) {
 		if (promiseState.cancelled) return;
 		Patcher.after(TitleBar, TitleBarKey, (thisObject, _, returnValue) => {
-			var is_popup_vc =
-				document.querySelectorAll("[class*=pictureInPicture]").length > 0;
-			if (is_popup_vc) return;
 			returnValue.props.style = { paddingLeft: 0 };
 			returnValue.props.children = /* @__PURE__ */ React.createElement(TopBar, {
 				leading: returnValue.props.children[1],

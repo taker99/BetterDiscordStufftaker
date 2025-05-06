@@ -3228,6 +3228,12 @@ const TopBar = class TopBar extends React.Component {
 
 		return (
 			<div id="channelTabs-container">
+				{/* Hide ChannelTabs in popouts. Since popouts don't have any the stylesheets from the main window, this must be applied here. */}
+				<style>
+					{`[data-popout-root="true"] #channelTabs-container {
+						display: none;
+					}`}
+				</style>
 				{!this.state.showTabBar ? null : (
 					<TabBar
 						leading={this.props.leading}
@@ -4100,13 +4106,6 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 	patchTitleBar(promiseState) {
 		if (promiseState.cancelled) return;
 		Patcher.after(TitleBar, TitleBarKey, (thisObject, _, returnValue) => {
-			// checks if it's VC popup
-			var is_popup_vc =
-				document.querySelectorAll("[class*=pictureInPicture]").length > 0;
-
-			// if not VC popup then apply the channel tabs patch
-			if (is_popup_vc) return;
-
 			returnValue.props.style = { paddingLeft: 0 };
 			returnValue.props.children = (
 				<TopBar
