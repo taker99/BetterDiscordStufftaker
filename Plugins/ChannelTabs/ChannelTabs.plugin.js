@@ -4236,10 +4236,12 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 								currentStatus: getCurrentUserStatus(location.pathname),
 								iconUrl: getCurrentIconUrl(location.pathname),
 								channelId,
-								minimized:
-									this.settings.tabs[
-										this.settings.tabs.findIndex((tab2) => tab2.selected)
-									].minimized,
+								minimized: (() => {
+									const idx = this.settings.tabs.findIndex((tab2) => tab2.selected);
+									return idx !== -1 && this.settings.tabs[idx]
+										? this.settings.tabs[idx].minimized
+										: false;
+								})(),
 							};
 						} else {
 							return Object.assign({}, tab);
@@ -4250,19 +4252,18 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 			);
 		} else if (!this.settings.reopenLastChannel) {
 			const channelId = SelectedChannelStore.getChannelId();
-			this.settings.tabs[this.settings.tabs.findIndex((tab) => tab.selected)] =
-				{
+			const idx = this.settings.tabs.findIndex((tab) => tab.selected);
+			if (idx !== -1 && this.settings.tabs[idx]) {
+				this.settings.tabs[idx] = {
 					name: getCurrentName(),
 					url: location.pathname,
 					selected: true,
 					currentStatus: getCurrentUserStatus(location.pathname),
 					iconUrl: getCurrentIconUrl(location.pathname),
 					channelId,
-					minimized:
-						this.settings.tabs[
-							this.settings.tabs.findIndex((tab) => tab.selected)
-						].minimized,
+					minimized: this.settings.tabs[idx].minimized,
 				};
+			}
 		}
 	}
 	mergeItems(itemsTab, itemsFav) {
@@ -4536,7 +4537,7 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 								)
 							),
 							defaultValue: 100,
-							markers: [60, 85, 100, 125, 150, 175, 200, 220],
+							markers: [60, 85, 100, 125, 150,  175, 200, 220],
 							units: "px",
 						},
 					],
@@ -4811,18 +4812,18 @@ html:not(.platform-win) #channelTabs-settingsMenu {
 						},
 						{
 							id: "showActiveTabMentionBadges",
-							type: "switch",
-							name: "Show Mentions",
-							note: "",
-							value: this.settings.showActiveTabMentionBadges,
-							onChange: (checked) => {
-								this.settings.showActiveTabMentionBadges = checked;
-								if (TopBarRef.current)
-									TopBarRef.current.setState({
-										showActiveTabMentionBadges: checked,
-									});
-								this.saveSettings();
-							},
+						 type: "switch",
+						 name: "Show Mentions",
+						 note: "",
+						 value: this.settings.showActiveTabMentionBadges,
+						 onChange: (checked) => {
+							 this.settings.showActiveTabMentionBadges = checked;
+							 if (TopBarRef.current)
+								 TopBarRef.current.setState({
+									 showActiveTabMentionBadges: checked,
+								 });
+							 this.saveSettings();
+						 },
 						},
 						{
 							id: "showActiveTabTypingBadge",
